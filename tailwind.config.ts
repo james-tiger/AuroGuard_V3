@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,19 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Space simulation theme colors
+				space: {
+					DEFAULT: '#0a0f1e',
+					lighter: '#141d33',
+					accent: '#05e9d1',
+					highlight: '#33c3f0',
+					danger: '#ea384c',
+					success: '#4ade80',
+					warning: '#fbbf24',
+					grid: '#1e3a5f',
+					panel: '#111827',
+				},
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -84,11 +97,26 @@ export default {
 					to: {
 						height: '0'
 					}
-				}
+				},
+				'pulse-light': {
+					'0%, 100%': { opacity: '0.6' },
+					'50%': { opacity: '0.9' },
+				},
+				'rotate-slow': {
+					'0%': { transform: 'rotate(0deg)' },
+					'100%': { transform: 'rotate(360deg)' },
+				},
+				'float': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-5px)' },
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-light': 'pulse-light 3s ease-in-out infinite',
+				'rotate-slow': 'rotate-slow 120s linear infinite',
+				'float': 'float 5s ease-in-out infinite',
 			}
 		}
 	},

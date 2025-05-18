@@ -1,67 +1,20 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 222 47% 11%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
+    --card: 222 47% 11%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -70,32 +23,197 @@
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 175 85% 45%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 62.8% 50.6%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-}
+    --ring: 224.3 76.3% 48%;
 
-@layer base {
+    --radius: 0.5rem;
+  }
+
   * {
     @apply border-border;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-space text-foreground;
   }
+}
+
+/* Space Simulation Custom Classes */
+.starfield {
+  background-color: #0a0f1e;
+  background-image: 
+    radial-gradient(circle at 25% 35%, rgba(255, 255, 255, 0.2) 0.1px, transparent 0.5px),
+    radial-gradient(circle at 58% 12%, rgba(255, 255, 255, 0.2) 0.15px, transparent 0.75px),
+    radial-gradient(circle at 80% 45%, rgba(255, 255, 255, 0.2) 0.1px, transparent 0.5px),
+    radial-gradient(circle at 10% 75%, rgba(255, 255, 255, 0.2) 0.15px, transparent 0.75px),
+    radial-gradient(circle at 37% 88%, rgba(255, 255, 255, 0.2) 0.1px, transparent 0.5px),
+    radial-gradient(circle at 85% 72%, rgba(255, 255, 255, 0.2) 0.15px, transparent 0.75px);
+  background-size: 150px 150px;
+  background-repeat: repeat;
+}
+
+.grid-pattern {
+  background-size: 50px 50px;
+  background-image: linear-gradient(to right, rgba(30, 58, 95, 0.3) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(30, 58, 95, 0.3) 1px, transparent 1px);
+}
+
+.circle-orbit {
+  border-radius: 50%;
+  border: 1px solid rgba(30, 58, 95, 0.5);
+}
+
+/* High-tech panel styling */
+.tech-panel {
+  background-color: rgba(17, 24, 39, 0.85);
+  border: 1px solid rgba(55, 65, 81, 0.5);
+  border-radius: 0.5rem;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+}
+
+.tech-panel-header {
+  position: relative;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(55, 65, 81, 0.3);
+}
+
+.tech-panel-header::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background-color: theme('colors.space.accent');
+}
+
+/* Tech-styled progress bar */
+.tech-progress-bar {
+  height: 4px;
+  background: linear-gradient(to right, 
+    rgba(5, 233, 209, 0.3), 
+    rgba(5, 233, 209, 0.6)
+  );
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.tech-progress-bar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 30px;
+  background: rgba(255, 255, 255, 0.4);
+  animation: progress-glow 2s ease-out infinite;
+  filter: blur(5px);
+}
+
+@keyframes progress-glow {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}
+
+/* Futuristic button styles */
+.tech-button {
+  background-color: rgba(30, 58, 95, 0.5);
+  border: 1px solid rgba(51, 195, 240, 0.3);
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  color: white;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.tech-button:hover {
+  background-color: rgba(51, 195, 240, 0.2);
+  border-color: rgba(51, 195, 240, 0.8);
+  box-shadow: 0 0 10px rgba(51, 195, 240, 0.4);
+}
+
+.tech-button:active {
+  transform: translateY(1px);
+}
+
+.tech-button::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    to bottom right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(45deg);
+  transition: all 0.3s ease;
+  opacity: 0;
+}
+
+.tech-button:hover::after {
+  opacity: 1;
+  transform: rotate(45deg) translateY(-100%);
+}
+
+/* Radar and scanner styles */
+.radar-sweep {
+  position: absolute;
+  width: 50%;
+  height: 50%;
+  background: linear-gradient(
+    to right,
+    rgba(5, 233, 209, 0.1) 0%,
+    rgba(5, 233, 209, 0.05) 50%,
+    transparent 100%
+  );
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+  transform-origin: bottom left;
+  animation: radar-sweep 5s linear infinite;
+}
+
+@keyframes radar-sweep {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Advanced Indicator Styles */
+.indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  position: relative;
+}
+
+.indicator-dot::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 50%;
+  background: inherit;
+  opacity: 0.4;
+  animation: pulse 2s ease-out infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 0.4; }
+  50% { transform: scale(1.5); opacity: 0.1; }
+  100% { transform: scale(1); opacity: 0.4; }
 }
