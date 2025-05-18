@@ -1,4 +1,3 @@
-
 import { useRef, useEffect } from 'react';
 
 interface SimulationCanvasProps {
@@ -102,7 +101,7 @@ const SimulationCanvas = ({ isRunning, simSpeed, radarRange }: SimulationCanvasP
       drawSpacecraft(ctx);
       
       // Draw radar range
-      drawRadarRange(ctx);
+      drawRadarRange(ctx, currentTime);
       
       // Update and draw debris
       updateDebris(deltaTime);
@@ -196,7 +195,7 @@ const SimulationCanvas = ({ isRunning, simSpeed, radarRange }: SimulationCanvasP
       ctx.fill();
     };
     
-    const drawRadarRange = (ctx: CanvasRenderingContext2D) => {
+    const drawRadarRange = (ctx: CanvasRenderingContext2D, currentTime: number) => {
       const { x, y } = spacecraftRef.current;
       const radius = radarRange * 10; // Scale radar range
       

@@ -31,22 +31,47 @@ const Simulation = () => {
   const [telemetry, setTelemetry] = useState(INITIAL_TELEMETRY);
   const [aiMode, setAiMode] = useState('off');
 
+  // Calculate visible debris based on radar range
+  useEffect(() => {
+    // Calculate debris count based on radar range (more range = more debris detected)
+    const visibleDebrisCount = Math.floor(radarRange * 1.5);
+    
+    setTelemetry(prev => ({
+      ...prev,
+      environment: {
+        ...prev.environment,
+        debrisCount: visibleDebrisCount,
+      }
+    }));
+  }, [radarRange]);
+
   // Simulate changing telemetry data
   useEffect(() => {
     if (!isRunning) return;
 
     const interval = setInterval(() => {
-      setTelemetry(prev => ({
-        ...prev,
-        spacecraft: {
-          ...prev.spacecraft,
-          velocity: Math.floor(Math.random() * 5),
-        },
-        environment: {
-          ...prev.environment,
-          nearbyObjects: Math.floor(Math.random() * 3),
-        }
-      }));
+      setTelemetry(prev => {
+        const nearbyObjects = Math.floor(Math.random() * 3);
+        // Calculate risk level based on nearby objects
+        let collisionRisk = 'Low';
+        if (nearbyObjects === 2) collisionRisk = 'Medium';
+        else if (nearbyObjects === 3) collisionRisk = 'High';
+        
+        return {
+          ...prev,
+          spacecraft: {
+            ...prev.spacecraft,
+            velocity: Math.floor(Math.random() * 5),
+          },
+          environment: {
+            ...prev.environment,
+            nearbyObjects,
+          },
+          safety: {
+            collisionRisk,
+          }
+        };
+      });
     }, 3000 / simSpeed);
 
     return () => clearInterval(interval);
@@ -62,7 +87,19 @@ const Simulation = () => {
 
   const changeAiMode = (mode: string) => {
     setAiMode(mode);
-    // In a real application, this would trigger different AI behaviors
+    // Update AI status in telemetry
+    setTelemetry(prev => ({
+      ...prev,
+      system: {
+        ...prev.system,
+        aiStatus: mode === 'off' ? 'Inactive' : mode === 'avoid' ? 'Avoidance Active' : 'Tracking Active'
+      }
+    }));
+  };
+
+  // Handle radar range change
+  const handleRadarRangeChange = (value: number[]) => {
+    setRadarRange(value[0]);
   };
 
   return (
@@ -115,6 +152,12 @@ const Simulation = () => {
                   <span className="text-xs text-gray-400">Environment</span>
                 </div>
                 <div className="space-y-3">
+                  <div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-400">Radar Range</span>
+                      <span className="font-mono">{radarRange} km</span>
+                    </div>
+                  </div>
                   <div>
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-400">Debris Count</span>
@@ -220,7 +263,7 @@ const Simulation = () => {
                   min={5} 
                   max={30} 
                   step={1} 
-                  onValueChange={(value) => setRadarRange(value[0])}
+                  onValueChange={handleRadarRangeChange}
                   className="my-5"
                 />
               </div>
@@ -230,7 +273,7 @@ const Simulation = () => {
                   <span className="text-xs text-gray-400">Simulation Status</span>
                   <div className="flex items-center gap-1">
                     <span className="indicator-dot bg-green-500"></span>
-                    <span className="text-xs font-mono">{isRunning ? 'Running (1x)' : 'Paused'}</span>
+                    <span className="text-xs font-mono">{isRunning ? `Running (${simSpeed}x)` : 'Paused'}</span>
                   </div>
                 </div>
               </div>
@@ -311,8 +354,10 @@ const Simulation = () => {
               
               <div className="mt-3">
                 <div className="flex items-center mt-2">
-                  <span className="indicator-dot bg-red-500 mr-2"></span>
-                  <span className="text-xs text-gray-400">AI navigation disabled</span>
+                  <span className={`indicator-dot ${aiMode !== 'off' ? 'bg-space-accent' : 'bg-red-500'} mr-2`}></span>
+                  <span className="text-xs text-gray-400">
+                    {aiMode !== 'off' ? `AI ${aiMode} mode active` : 'AI navigation disabled'}
+                  </span>
                 </div>
               </div>
             </div>
