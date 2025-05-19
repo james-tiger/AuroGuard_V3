@@ -4,9 +4,24 @@ interface SimulationCanvasProps {
   isRunning: boolean;
   simSpeed: number;
   radarRange: number;
+  aiMode: string;
+  onDebrisCountChange: (count: number) => void;
+  navigationControls: {
+    up: boolean;
+    down: boolean;
+    left: boolean;
+    right: boolean;
+  };
 }
 
-const SimulationCanvas = ({ isRunning, simSpeed, radarRange }: SimulationCanvasProps) => {
+const SimulationCanvas = ({ 
+  isRunning, 
+  simSpeed, 
+  radarRange, 
+  aiMode, 
+  onDebrisCountChange, 
+  navigationControls 
+}: SimulationCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const spacecraftRef = useRef<{ x: number, y: number, vx: number, vy: number }>({ 
     x: 0, y: 0, vx: 0, vy: 0 
@@ -74,6 +89,23 @@ const SimulationCanvas = ({ isRunning, simSpeed, radarRange }: SimulationCanvasP
     };
   }, []);
   
+  // Update visible debris count based on radar range
+  useEffect(() => {
+    const radarRangePixels = radarRange * 10;
+    const { x: sx, y: sy } = spacecraftRef.current;
+    
+    // Count debris within radar range
+    const debrisInRange = debrisRef.current.filter(debris => {
+      const dx = debris.x - sx;
+      const dy = debris.y - sy;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      return distance <= radarRangePixels;
+    }).length;
+    
+    // Update parent component with count
+    onDebrisCountChange(debrisInRange);
+  }, [radarRange, onDebrisCountChange]);
+  
   // Animation loop
   useEffect(() => {
     if (!canvasRef.current || !isRunning) return;
@@ -95,6 +127,9 @@ const SimulationCanvas = ({ isRunning, simSpeed, radarRange }: SimulationCanvasP
       
       // Draw grid
       drawGrid(ctx, canvas);
+      
+      // Apply navigation controls and AI logic
+      applyNavigationAndAI(deltaTime);
       
       // Update and draw spacecraft
       updateSpacecraft(deltaTime);
@@ -161,6 +196,60 @@ const SimulationCanvas = ({ isRunning, simSpeed, radarRange }: SimulationCanvasP
       ctx.stroke();
     };
     
+    const applyNavigationAndAI = (deltaTime: number) => {
+      const spacecraft = spacecraftRef.current;
+      const thrustPower = 0.01 * deltaTime;
+      
+      // Manual navigation controls
+      if (navigationControls.up) spacecraft.vy -= thrustPower;
+      if (navigationControls.down) spacecraft.vy += thrustPower;
+      if (navigationControls.left) spacecraft.vx -= thrustPower;
+      if (navigationControls.right) spacecraft.vx += thrustPower;
+      
+      // AI modes
+      if (aiMode !== 'off') {
+        // Get closest debris
+        let closestDebris = null;
+        let closestDistance = Infinity;
+        
+        for (const debris of debrisRef.current) {
+          const dx = debris.x - spacecraft.x;
+          const dy = debris.y - spacecraft.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestDebris = debris;
+          }
+        }
+        
+        if (closestDebris && closestDistance < radarRange * 10) {
+          if (aiMode === 'avoid') {
+            // Avoid mode: move away from closest debris
+            const dx = spacecraft.x - closestDebris.x;
+            const dy = spacecraft.y - closestDebris.y;
+            const angle = Math.atan2(dy, dx);
+            
+            // Stronger avoidance when closer
+            const avoidStrength = 0.01 * deltaTime * (1 / (closestDistance / 100 + 0.1));
+            spacecraft.vx += Math.cos(angle) * avoidStrength;
+            spacecraft.vy += Math.sin(angle) * avoidStrength;
+          } 
+          else if (aiMode === 'follow') {
+            // Follow mode: chase the closest debris
+            const dx = closestDebris.x - spacecraft.x;
+            const dy = closestDebris.y - spacecraft.y;
+            const angle = Math.atan2(dy, dx);
+            
+            // Gentler following
+            const followStrength = 0.005 * deltaTime;
+            spacecraft.vx += Math.cos(angle) * followStrength;
+            spacecraft.vy += Math.sin(angle) * followStrength;
+          }
+        }
+      }
+    };
+    
     const updateSpacecraft = (deltaTime: number) => {
       const spacecraft = spacecraftRef.current;
       
@@ -168,8 +257,9 @@ const SimulationCanvas = ({ isRunning, simSpeed, radarRange }: SimulationCanvasP
       spacecraft.vx *= 0.99;
       spacecraft.vy *= 0.99;
       
-      // Random small perturbations to make it look alive
-      if (Math.random() < 0.05) {
+      // Random small perturbations to make it look alive (only if AI is off and no manual controls)
+      if (aiMode === 'off' && !navigationControls.up && !navigationControls.down && 
+          !navigationControls.left && !navigationControls.right && Math.random() < 0.05) {
         spacecraft.vx += (Math.random() - 0.5) * 0.01;
         spacecraft.vy += (Math.random() - 0.5) * 0.01;
       }
@@ -177,6 +267,12 @@ const SimulationCanvas = ({ isRunning, simSpeed, radarRange }: SimulationCanvasP
       // Update position
       spacecraft.x += spacecraft.vx * deltaTime;
       spacecraft.y += spacecraft.vy * deltaTime;
+      
+      // Keep spacecraft in bounds
+      if (spacecraft.x < 0) spacecraft.x = 0;
+      if (spacecraft.y < 0) spacecraft.y = 0;
+      if (spacecraft.x > canvas.width) spacecraft.x = canvas.width;
+      if (spacecraft.y > canvas.height) spacecraft.y = canvas.height;
     };
     
     const drawSpacecraft = (ctx: CanvasRenderingContext2D) => {
@@ -310,7 +406,7 @@ const SimulationCanvas = ({ isRunning, simSpeed, radarRange }: SimulationCanvasP
     
     // Cleanup on unmount or when dependencies change
     return () => cancelAnimationFrame(frameIdRef.current);
-  }, [isRunning, simSpeed, radarRange]);
+  }, [isRunning, simSpeed, radarRange, navigationControls, aiMode]);
   
   return (
     <canvas 

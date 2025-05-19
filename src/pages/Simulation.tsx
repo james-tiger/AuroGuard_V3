@@ -30,20 +30,23 @@ const Simulation = () => {
   const [radarRange, setRadarRange] = useState(15);
   const [telemetry, setTelemetry] = useState(INITIAL_TELEMETRY);
   const [aiMode, setAiMode] = useState('off');
+  const [navigationControls, setNavigationControls] = useState({
+    up: false,
+    down: false,
+    left: false,
+    right: false
+  });
 
-  // Calculate visible debris based on radar range
-  useEffect(() => {
-    // Calculate debris count based on radar range (more range = more debris detected)
-    const visibleDebrisCount = Math.floor(radarRange * 1.5);
-    
+  // Handle debris count changes from the canvas
+  const handleDebrisCountChange = (count: number) => {
     setTelemetry(prev => ({
       ...prev,
       environment: {
         ...prev.environment,
-        debrisCount: visibleDebrisCount,
+        debrisCount: count
       }
     }));
-  }, [radarRange]);
+  };
 
   // Simulate changing telemetry data
   useEffect(() => {
@@ -76,6 +79,21 @@ const Simulation = () => {
 
     return () => clearInterval(interval);
   }, [isRunning, simSpeed]);
+
+  // Handle navigation button press/release
+  const handleNavigationPress = (direction: 'up' | 'down' | 'left' | 'right') => {
+    setNavigationControls(prev => ({
+      ...prev,
+      [direction]: true
+    }));
+  };
+
+  const handleNavigationRelease = (direction: 'up' | 'down' | 'left' | 'right') => {
+    setNavigationControls(prev => ({
+      ...prev,
+      [direction]: false
+    }));
+  };
 
   const handleSpeedChange = (speed: number) => {
     setSimSpeed(speed);
@@ -110,6 +128,9 @@ const Simulation = () => {
           isRunning={isRunning} 
           simSpeed={simSpeed}
           radarRange={radarRange}
+          aiMode={aiMode}
+          navigationControls={navigationControls}
+          onDebrisCountChange={handleDebrisCountChange}
         />
       </div>
 
@@ -289,24 +310,54 @@ const Simulation = () => {
             <div className="tech-panel p-3">
               <div className="grid grid-cols-3 gap-2 mb-4">
                 <div></div>
-                <button className="tech-button flex justify-center items-center">
+                <button 
+                  className={`tech-button flex justify-center items-center ${navigationControls.up ? 'bg-space-accent/20 border-space-accent' : ''}`}
+                  onMouseDown={() => handleNavigationPress('up')}
+                  onMouseUp={() => handleNavigationRelease('up')}
+                  onMouseLeave={() => handleNavigationRelease('up')}
+                  onTouchStart={() => handleNavigationPress('up')}
+                  onTouchEnd={() => handleNavigationRelease('up')}
+                >
                   <ArrowUp className="h-4 w-4" />
                 </button>
                 <div></div>
                 
-                <button className="tech-button flex justify-center items-center">
+                <button 
+                  className={`tech-button flex justify-center items-center ${navigationControls.left ? 'bg-space-accent/20 border-space-accent' : ''}`}
+                  onMouseDown={() => handleNavigationPress('left')}
+                  onMouseUp={() => handleNavigationRelease('left')}
+                  onMouseLeave={() => handleNavigationRelease('left')}
+                  onTouchStart={() => handleNavigationPress('left')}
+                  onTouchEnd={() => handleNavigationRelease('left')}
+                >
                   <ArrowLeft className="h-4 w-4" />
                 </button>
-                <button className="tech-button flex justify-center items-center">
+                <button 
+                  className={`tech-button flex justify-center items-center ${navigationControls.down ? 'bg-space-accent/20 border-space-accent' : ''}`}
+                  onMouseDown={() => handleNavigationPress('down')}
+                  onMouseUp={() => handleNavigationRelease('down')}
+                  onMouseLeave={() => handleNavigationRelease('down')}
+                  onTouchStart={() => handleNavigationPress('down')}
+                  onTouchEnd={() => handleNavigationRelease('down')}
+                >
                   <ArrowDown className="h-4 w-4" />
                 </button>
-                <button className="tech-button flex justify-center items-center">
+                <button 
+                  className={`tech-button flex justify-center items-center ${navigationControls.right ? 'bg-space-accent/20 border-space-accent' : ''}`}
+                  onMouseDown={() => handleNavigationPress('right')}
+                  onMouseUp={() => handleNavigationRelease('right')}
+                  onMouseLeave={() => handleNavigationRelease('right')}
+                  onTouchStart={() => handleNavigationPress('right')}
+                  onTouchEnd={() => handleNavigationRelease('right')}
+                >
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
               
               <div className="text-xs text-gray-400 text-center">
-                Use controls to navigate spacecraft
+                {Object.values(navigationControls).some(control => control) 
+                  ? 'Thrusters active' 
+                  : 'Use controls to navigate spacecraft'}
               </div>
             </div>
           </div>
@@ -322,7 +373,10 @@ const Simulation = () => {
                 <span className="text-xs text-gray-400">AI Control</span>
                 <div className="flex items-center">
                   <span className="text-xs">Manual</span>
-                  <div className="w-8 h-4 mx-2 rounded-full bg-gray-700 flex items-center p-0.5">
+                  <div 
+                    className="w-8 h-4 mx-2 rounded-full bg-gray-700 flex items-center p-0.5 cursor-pointer"
+                    onClick={() => changeAiMode(aiMode === 'off' ? 'avoid' : 'off')}
+                  >
                     <div className={`w-3 h-3 rounded-full transition-all ${aiMode !== 'off' ? 'bg-space-accent translate-x-4' : 'bg-gray-400'}`}></div>
                   </div>
                 </div>
