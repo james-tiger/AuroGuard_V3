@@ -1,4 +1,6 @@
 import { useRef, useEffect } from 'react';
+import { toast } from '@/components/ui/sonner';
+import { AlertTriangle } from 'lucide-react';
 
 interface SimulationCanvasProps {
   isRunning: boolean;
@@ -6,6 +8,7 @@ interface SimulationCanvasProps {
   radarRange: number;
   aiMode: string;
   onDebrisCountChange: (count: number) => void;
+  onCollisionRiskChange: (risk: 'Low' | 'Medium' | 'High', nearbyCount: number) => void;
   navigationControls: {
     up: boolean;
     down: boolean;
@@ -20,6 +23,7 @@ const SimulationCanvas = ({
   radarRange, 
   aiMode, 
   onDebrisCountChange, 
+  onCollisionRiskChange,
   navigationControls 
 }: SimulationCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -28,6 +32,7 @@ const SimulationCanvas = ({
   });
   const debrisRef = useRef<Array<{ x: number, y: number, vx: number, vy: number, size: number }>>([]);
   const frameIdRef = useRef<number>(0);
+  const lastNotificationTimeRef = useRef<number>(0);
   
   // Initialize simulation
   useEffect(() => {
@@ -89,22 +94,66 @@ const SimulationCanvas = ({
     };
   }, []);
   
-  // Update visible debris count based on radar range
+  // Update visible debris count and collision risk based on radar range
   useEffect(() => {
-    const radarRangePixels = radarRange * 10;
-    const { x: sx, y: sy } = spacecraftRef.current;
+    if (!isRunning) return;
     
-    // Count debris within radar range
-    const debrisInRange = debrisRef.current.filter(debris => {
-      const dx = debris.x - sx;
-      const dy = debris.y - sy;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-      return distance <= radarRangePixels;
-    }).length;
+    const updateDebrisAndRisk = () => {
+      const { x: sx, y: sy } = spacecraftRef.current;
+      const radarRangePixels = radarRange * 10;
+      
+      // Calculate distances to all debris
+      const debrisDistances = debrisRef.current.map(debris => {
+        const dx = debris.x - sx;
+        const dy = debris.y - sy;
+        return Math.sqrt(dx * dx + dy * dy);
+      });
+      
+      // Count debris within radar range
+      const debrisInRange = debrisDistances.filter(distance => distance <= radarRangePixels).length;
+      
+      // Count very close debris (within 10km which is 10 pixels in our simulation)
+      const criticalDebris = debrisDistances.filter(distance => distance <= 10).length;
+      const closeDebris = debrisDistances.filter(distance => distance > 10 && distance <= 50).length;
+      const mediumDebris = debrisDistances.filter(distance => distance > 50 && distance <= 100).length;
+      
+      // Determine risk level
+      let riskLevel: 'Low' | 'Medium' | 'High' = 'Low';
+      if (criticalDebris > 0) {
+        riskLevel = 'High';
+      } else if (closeDebris > 0) {
+        riskLevel = 'Medium';
+      } else if (mediumDebris > 1) {
+        riskLevel = 'Medium';
+      }
+      
+      // Check for critical proximity (1km = 10 pixels)
+      const currentTime = Date.now();
+      if (criticalDebris > 0 && currentTime - lastNotificationTimeRef.current > 3000) {
+        // Show danger notification if debris is within 1km
+        toast("CRITICAL PROXIMITY ALERT", {
+          description: "Space debris detected at dangerous distance!",
+          icon: <AlertTriangle className="h-5 w-5 text-red-500" />,
+          duration: 3000,
+          style: { 
+            backgroundColor: '#222', 
+            border: '1px solid #ea384c',
+            color: 'white' 
+          },
+        });
+        lastNotificationTimeRef.current = currentTime;
+      }
+      
+      // Update parent component
+      onDebrisCountChange(debrisInRange);
+      onCollisionRiskChange(riskLevel, criticalDebris + closeDebris);
+    };
     
-    // Update parent component with count
-    onDebrisCountChange(debrisInRange);
-  }, [radarRange, onDebrisCountChange]);
+    // Set up interval for updates
+    const intervalId = setInterval(updateDebrisAndRisk, 500);
+    
+    return () => clearInterval(intervalId);
+  }, [isRunning, radarRange, onDebrisCountChange, onCollisionRiskChange]);
   
   // Animation loop
   useEffect(() => {
@@ -294,6 +343,44 @@ const SimulationCanvas = ({
       // No need to keep spacecraft in bounds anymore since the view follows it
     };
     
+    const checkCollisions = () => {
+      const { x, y } = spacecraftRef.current;
+      const collisionThreshold = 15;
+      
+      debrisRef.current.forEach(debris => {
+        const dx = debris.x - x;
+        const dy = debris.y - y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance < collisionThreshold) {
+          // Collision detected - in a real app you'd handle this with more sophisticated logic
+          console.log('Collision detected!');
+          
+          // Visual feedback - flash red
+          if (ctx) {
+            ctx.fillStyle = 'rgba(234, 56, 76, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+          }
+          
+          // Show collision notification
+          const currentTime = Date.now();
+          if (currentTime - lastNotificationTimeRef.current > 1000) {
+            toast("COLLISION DETECTED", {
+              description: "Impact with space debris!",
+              icon: <AlertTriangle className="h-5 w-5 text-red-500" />,
+              duration: 3000,
+              style: { 
+                backgroundColor: '#222', 
+                border: '2px solid #ea384c',
+                color: 'white' 
+              },
+            });
+            lastNotificationTimeRef.current = currentTime;
+          }
+        }
+      });
+    };
+    
     const drawSpacecraft = (ctx: CanvasRenderingContext2D) => {
       const { x, y } = spacecraftRef.current;
       
@@ -389,28 +476,6 @@ const SimulationCanvas = ({
           // Outside radar range - dimmer
           ctx.fillStyle = 'rgba(150, 150, 150, 0.3)';
           ctx.fill();
-        }
-      });
-    };
-    
-    const checkCollisions = () => {
-      const { x, y } = spacecraftRef.current;
-      const collisionThreshold = 15;
-      
-      debrisRef.current.forEach(debris => {
-        const dx = debris.x - x;
-        const dy = debris.y - y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        if (distance < collisionThreshold) {
-          // Collision detected - in a real app you'd handle this with more sophisticated logic
-          console.log('Collision detected!');
-          
-          // Visual feedback - flash red
-          if (ctx) {
-            ctx.fillStyle = 'rgba(234, 56, 76, 0.3)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-          }
         }
       });
     };

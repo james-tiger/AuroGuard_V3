@@ -1,10 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Progress } from '@/components/ui/progress';
 import { Pause, Play, FastForward, SkipForward, RotateCcw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Shield, Power, Target, Satellite } from 'lucide-react';
 import SimulationCanvas from '@/components/SimulationCanvas';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 
 // Mock data for simulation
 const INITIAL_TELEMETRY = {
@@ -30,6 +30,7 @@ const Simulation = () => {
   const [radarRange, setRadarRange] = useState(15);
   const [telemetry, setTelemetry] = useState(INITIAL_TELEMETRY);
   const [aiMode, setAiMode] = useState('off');
+  const [showWarning, setShowWarning] = useState(false);
   const [navigationControls, setNavigationControls] = useState({
     up: false,
     down: false,
@@ -48,30 +49,35 @@ const Simulation = () => {
     }));
   };
 
+  // Handle collision risk changes from the canvas
+  const handleCollisionRiskChange = (risk: 'Low' | 'Medium' | 'High', nearbyCount: number) => {
+    setTelemetry(prev => ({
+      ...prev,
+      environment: {
+        ...prev.environment,
+        nearbyObjects: nearbyCount
+      },
+      safety: {
+        ...prev.safety,
+        collisionRisk: risk
+      }
+    }));
+    
+    // Show warning alert for high risk
+    setShowWarning(risk === 'High');
+  };
+
   // Simulate changing telemetry data
   useEffect(() => {
     if (!isRunning) return;
 
     const interval = setInterval(() => {
       setTelemetry(prev => {
-        const nearbyObjects = Math.floor(Math.random() * 3);
-        // Calculate risk level based on nearby objects
-        let collisionRisk = 'Low';
-        if (nearbyObjects === 2) collisionRisk = 'Medium';
-        else if (nearbyObjects === 3) collisionRisk = 'High';
-        
         return {
           ...prev,
           spacecraft: {
             ...prev.spacecraft,
             velocity: Math.floor(Math.random() * 5),
-          },
-          environment: {
-            ...prev.environment,
-            nearbyObjects,
-          },
-          safety: {
-            collisionRisk,
           }
         };
       });
@@ -131,8 +137,21 @@ const Simulation = () => {
           aiMode={aiMode}
           navigationControls={navigationControls}
           onDebrisCountChange={handleDebrisCountChange}
+          onCollisionRiskChange={handleCollisionRiskChange}
         />
       </div>
+
+      {/* Collision warning alert */}
+      {showWarning && (
+        <div className="absolute top-4 left-4 right-4 z-20">
+          <Alert variant="destructive" className="border-red-600 bg-red-900/40 text-white animate-pulse">
+            <AlertTitle className="text-red-200">COLLISION RISK DETECTED</AlertTitle>
+            <AlertDescription>
+              Critical proximity warning! Space debris detected within dangerous range.
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
 
       {/* Right sidebar with controls */}
       <div className="absolute top-0 right-0 bottom-0 w-80 bg-space-panel bg-opacity-90 border-l border-space-grid overflow-y-auto z-10">
