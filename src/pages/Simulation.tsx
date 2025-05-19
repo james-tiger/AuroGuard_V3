@@ -156,7 +156,7 @@ const Simulation = () => {
               <div>
                 <AlertTitle className="text-red-200">COLLISION RISK DETECTED</AlertTitle>
                 <AlertDescription>
-                  Critical proximity warning! Space debris detected within dangerous range.
+                  Critical proximity warning! Space debris detected within {Math.round(radarRange * 0.3)}km range.
                 </AlertDescription>
               </div>
               <Button 

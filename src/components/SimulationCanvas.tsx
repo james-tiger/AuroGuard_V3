@@ -116,9 +116,13 @@ const SimulationCanvas = ({
       const debrisInRange = debrisDistances.filter(distance => distance <= radarRangePixels).length;
       
       // Count very close debris (within different ranges)
-      const criticalDebris = debrisDistances.filter(distance => distance <= 50).length; // 5km = 50 pixels
-      const closeDebris = debrisDistances.filter(distance => distance > 50 && distance <= 100).length; // 5-10km
-      const mediumDebris = debrisDistances.filter(distance => distance > 100 && distance <= 200).length; // 10-20km
+      // Use percentages of radar range to determine critical and close ranges
+      const criticalRangePixels = Math.min(50, radarRangePixels * 0.3); // Either 50px or 30% of radar range
+      const closeRangePixels = Math.min(100, radarRangePixels * 0.6); // Either 100px or 60% of radar range
+      
+      const criticalDebris = debrisDistances.filter(distance => distance <= criticalRangePixels).length;
+      const closeDebris = debrisDistances.filter(distance => distance > criticalRangePixels && distance <= closeRangePixels).length;
+      const mediumDebris = debrisDistances.filter(distance => distance > closeRangePixels && distance <= radarRangePixels).length;
       
       // Determine risk level
       let riskLevel: 'Low' | 'Medium' | 'High' = 'Low';
@@ -130,12 +134,12 @@ const SimulationCanvas = ({
         riskLevel = 'Medium';
       }
       
-      // Check for critical proximity (5km = 50 pixels)
+      // Check for critical proximity
       const currentTime = Date.now();
       if (criticalDebris > 0 && currentTime - lastNotificationTimeRef.current > 5000) {
-        // Show danger notification if debris is within 5km
+        // Show danger notification if debris is within critical range
         toast("CRITICAL PROXIMITY ALERT", {
-          description: "Space debris detected at dangerous distance!",
+          description: `Space debris detected at dangerous distance (within ${Math.round(criticalRangePixels/10)}km)!`,
           icon: <AlertTriangle className="h-5 w-5 text-red-500" />,
           duration: 10000,
           style: { 
@@ -151,11 +155,11 @@ const SimulationCanvas = ({
         lastNotificationTimeRef.current = currentTime;
       }
       
-      // Check for medium proximity (10km = 100 pixels)
+      // Check for medium proximity
       if (closeDebris > 0 && currentTime - lastYellowNotificationTimeRef.current > 8000) {
-        // Show warning notification if debris is within 5-10km
+        // Show warning notification if debris is within close range
         toast("PROXIMITY WARNING", {
-          description: "Space debris approaching - maintain vigilance",
+          description: `Space debris approaching within ${Math.round(closeRangePixels/10)}km - maintain vigilance`,
           icon: <AlertTriangle className="h-5 w-5 text-yellow-500" />,
           duration: 8000,
           style: { 
@@ -380,7 +384,8 @@ const SimulationCanvas = ({
     
     const checkCollisions = () => {
       const { x, y } = spacecraftRef.current;
-      const collisionThreshold = 15;
+      // Use a percentage of radar range for collision detection, with a minimum value
+      const collisionThreshold = Math.min(15, radarRange * 10 * 0.1);
       
       debrisRef.current.forEach(debris => {
         const dx = debris.x - x;
@@ -453,15 +458,18 @@ const SimulationCanvas = ({
       ctx.fillStyle = 'rgba(5, 233, 209, 0.1)';
       ctx.fill();
       
-      // Draw critical zones (5km and 10km)
+      // Draw critical zones - now tied to radar range
+      const criticalRange = Math.min(50, radius * 0.3); // 30% of radar range or 50px
+      const warningRange = Math.min(100, radius * 0.6); // 60% of radar range or 100px
+      
       ctx.beginPath();
-      ctx.arc(x, y, 50, 0, Math.PI * 2); // 5km = 50px
+      ctx.arc(x, y, criticalRange, 0, Math.PI * 2);
       ctx.strokeStyle = 'rgba(234, 56, 76, 0.5)';
       ctx.lineWidth = 1;
       ctx.stroke();
       
       ctx.beginPath();
-      ctx.arc(x, y, 100, 0, Math.PI * 2); // 10km = 100px
+      ctx.arc(x, y, warningRange, 0, Math.PI * 2);
       ctx.strokeStyle = 'rgba(247, 115, 22, 0.5)';
       ctx.lineWidth = 1;
       ctx.stroke();
@@ -478,6 +486,8 @@ const SimulationCanvas = ({
     const drawDebris = (ctx: CanvasRenderingContext2D) => {
       const { x: sx, y: sy } = spacecraftRef.current;
       const radarRangePixels = radarRange * 10;
+      const criticalRange = Math.min(50, radarRangePixels * 0.3); // 30% of radar range or 50px
+      const warningRange = Math.min(100, radarRangePixels * 0.6); // 60% of radar range or 100px
       
       debrisRef.current.forEach(debris => {
         // Calculate distance to spacecraft
@@ -487,8 +497,8 @@ const SimulationCanvas = ({
         
         // Determine if within radar range
         const inRange = distance <= radarRangePixels;
-        const inCriticalRange = distance <= 50; // 5km
-        const inWarningRange = distance <= 100; // 10km
+        const inCriticalRange = distance <= criticalRange;
+        const inWarningRange = distance <= warningRange;
         
         // Draw debris
         ctx.beginPath();
