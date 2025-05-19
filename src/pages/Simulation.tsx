@@ -1,10 +1,12 @@
+
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Progress } from '@/components/ui/progress';
-import { Pause, Play, FastForward, SkipForward, RotateCcw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Shield, Power, Target, Satellite } from 'lucide-react';
+import { Pause, Play, FastForward, SkipForward, RotateCcw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Shield, Power, Target, Satellite, X } from 'lucide-react';
 import SimulationCanvas from '@/components/SimulationCanvas';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 
 // Mock data for simulation
 const INITIAL_TELEMETRY = {
@@ -65,6 +67,11 @@ const Simulation = () => {
     
     // Show warning alert for high risk
     setShowWarning(risk === 'High');
+  };
+
+  // Function to dismiss warning
+  const dismissWarning = () => {
+    setShowWarning(false);
   };
 
   // Simulate changing telemetry data
@@ -145,10 +152,22 @@ const Simulation = () => {
       {showWarning && (
         <div className="absolute top-4 left-4 right-4 z-20">
           <Alert variant="destructive" className="border-red-600 bg-red-900/40 text-white animate-pulse">
-            <AlertTitle className="text-red-200">COLLISION RISK DETECTED</AlertTitle>
-            <AlertDescription>
-              Critical proximity warning! Space debris detected within dangerous range.
-            </AlertDescription>
+            <div className="flex justify-between items-start">
+              <div>
+                <AlertTitle className="text-red-200">COLLISION RISK DETECTED</AlertTitle>
+                <AlertDescription>
+                  Critical proximity warning! Space debris detected within dangerous range.
+                </AlertDescription>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-red-200 hover:text-white hover:bg-red-800/50" 
+                onClick={dismissWarning}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </Alert>
         </div>
       )}

@@ -1,6 +1,8 @@
+
 import { useRef, useEffect } from 'react';
 import { toast } from '@/components/ui/sonner';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface SimulationCanvasProps {
   isRunning: boolean;
@@ -33,6 +35,7 @@ const SimulationCanvas = ({
   const debrisRef = useRef<Array<{ x: number, y: number, vx: number, vy: number, size: number }>>([]);
   const frameIdRef = useRef<number>(0);
   const lastNotificationTimeRef = useRef<number>(0);
+  const lastYellowNotificationTimeRef = useRef<number>(0);
   
   // Initialize simulation
   useEffect(() => {
@@ -112,10 +115,10 @@ const SimulationCanvas = ({
       // Count debris within radar range
       const debrisInRange = debrisDistances.filter(distance => distance <= radarRangePixels).length;
       
-      // Count very close debris (within 10km which is 10 pixels in our simulation)
-      const criticalDebris = debrisDistances.filter(distance => distance <= 10).length;
-      const closeDebris = debrisDistances.filter(distance => distance > 10 && distance <= 50).length;
-      const mediumDebris = debrisDistances.filter(distance => distance > 50 && distance <= 100).length;
+      // Count very close debris (within different ranges)
+      const criticalDebris = debrisDistances.filter(distance => distance <= 50).length; // 5km = 50 pixels
+      const closeDebris = debrisDistances.filter(distance => distance > 50 && distance <= 100).length; // 5-10km
+      const mediumDebris = debrisDistances.filter(distance => distance > 100 && distance <= 200).length; // 10-20km
       
       // Determine risk level
       let riskLevel: 'Low' | 'Medium' | 'High' = 'Low';
@@ -127,21 +130,45 @@ const SimulationCanvas = ({
         riskLevel = 'Medium';
       }
       
-      // Check for critical proximity (1km = 10 pixels)
+      // Check for critical proximity (5km = 50 pixels)
       const currentTime = Date.now();
-      if (criticalDebris > 0 && currentTime - lastNotificationTimeRef.current > 3000) {
-        // Show danger notification if debris is within 1km
+      if (criticalDebris > 0 && currentTime - lastNotificationTimeRef.current > 5000) {
+        // Show danger notification if debris is within 5km
         toast("CRITICAL PROXIMITY ALERT", {
           description: "Space debris detected at dangerous distance!",
           icon: <AlertTriangle className="h-5 w-5 text-red-500" />,
-          duration: 3000,
+          duration: 10000,
           style: { 
             backgroundColor: '#222', 
             border: '1px solid #ea384c',
             color: 'white' 
           },
+          action: {
+            label: <X className="h-4 w-4" />,
+            onClick: () => console.log("Alert dismissed")
+          }
         });
         lastNotificationTimeRef.current = currentTime;
+      }
+      
+      // Check for medium proximity (10km = 100 pixels)
+      if (closeDebris > 0 && currentTime - lastYellowNotificationTimeRef.current > 8000) {
+        // Show warning notification if debris is within 5-10km
+        toast("PROXIMITY WARNING", {
+          description: "Space debris approaching - maintain vigilance",
+          icon: <AlertTriangle className="h-5 w-5 text-yellow-500" />,
+          duration: 8000,
+          style: { 
+            backgroundColor: '#222', 
+            border: '1px solid #F97316',
+            color: 'white' 
+          },
+          action: {
+            label: <X className="h-4 w-4" />,
+            onClick: () => console.log("Warning dismissed")
+          }
+        });
+        lastYellowNotificationTimeRef.current = currentTime;
       }
       
       // Update parent component
@@ -278,9 +305,9 @@ const SimulationCanvas = ({
       if (navigationControls.left) spacecraft.vx -= thrustPower;
       if (navigationControls.right) spacecraft.vx += thrustPower;
       
-      // AI modes
+      // AI modes - Enhanced to work better with radar
       if (aiMode !== 'off') {
-        // Get closest debris
+        // Get closest debris within radar range
         let closestDebris = null;
         let closestDistance = Infinity;
         
@@ -289,21 +316,23 @@ const SimulationCanvas = ({
           const dy = debris.y - spacecraft.y;
           const distance = Math.sqrt(dx * dx + dy * dy);
           
-          if (distance < closestDistance) {
+          // Only consider debris within radar range
+          if (distance <= radarRange * 10 && distance < closestDistance) {
             closestDistance = distance;
             closestDebris = debris;
           }
         }
         
-        if (closestDebris && closestDistance < radarRange * 10) {
+        if (closestDebris) {
           if (aiMode === 'avoid') {
             // Avoid mode: move away from closest debris
+            // Stronger response for closer debris
             const dx = spacecraft.x - closestDebris.x;
             const dy = spacecraft.y - closestDebris.y;
             const angle = Math.atan2(dy, dx);
             
             // Stronger avoidance when closer
-            const avoidStrength = 0.01 * deltaTime * (1 / (closestDistance / 100 + 0.1));
+            const avoidStrength = 0.015 * deltaTime * (1 / (closestDistance / 100 + 0.1));
             spacecraft.vx += Math.cos(angle) * avoidStrength;
             spacecraft.vy += Math.sin(angle) * avoidStrength;
           } 
@@ -313,10 +342,16 @@ const SimulationCanvas = ({
             const dy = closestDebris.y - spacecraft.y;
             const angle = Math.atan2(dy, dx);
             
-            // Gentler following
-            const followStrength = 0.005 * deltaTime;
+            // More responsive following
+            const followStrength = 0.01 * deltaTime;
             spacecraft.vx += Math.cos(angle) * followStrength;
             spacecraft.vy += Math.sin(angle) * followStrength;
+            
+            // Slow down when getting too close
+            if (closestDistance < 50) { // 5km
+              spacecraft.vx *= 0.98;
+              spacecraft.vy *= 0.98;
+            }
           }
         }
       }
@@ -417,6 +452,19 @@ const SimulationCanvas = ({
       ctx.closePath();
       ctx.fillStyle = 'rgba(5, 233, 209, 0.1)';
       ctx.fill();
+      
+      // Draw critical zones (5km and 10km)
+      ctx.beginPath();
+      ctx.arc(x, y, 50, 0, Math.PI * 2); // 5km = 50px
+      ctx.strokeStyle = 'rgba(234, 56, 76, 0.5)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      
+      ctx.beginPath();
+      ctx.arc(x, y, 100, 0, Math.PI * 2); // 10km = 100px
+      ctx.strokeStyle = 'rgba(247, 115, 22, 0.5)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
     };
     
     const updateDebris = (deltaTime: number) => {
@@ -424,8 +472,6 @@ const SimulationCanvas = ({
         // Update position
         debris.x += debris.vx * deltaTime;
         debris.y += debris.vy * deltaTime;
-        
-        // No need to wrap around screen edges since the view follows the spacecraft
       });
     };
     
@@ -441,28 +487,54 @@ const SimulationCanvas = ({
         
         // Determine if within radar range
         const inRange = distance <= radarRangePixels;
+        const inCriticalRange = distance <= 50; // 5km
+        const inWarningRange = distance <= 100; // 10km
         
         // Draw debris
         ctx.beginPath();
         ctx.arc(debris.x, debris.y, debris.size, 0, Math.PI * 2);
         
         if (inRange) {
-          // Within radar range - more visible
-          ctx.fillStyle = 'rgba(255, 191, 36, 0.8)';
+          // Color based on distance
+          if (inCriticalRange) {
+            // Critical range - red
+            ctx.fillStyle = 'rgba(234, 56, 76, 0.8)';
+          } else if (inWarningRange) {
+            // Warning range - orange
+            ctx.fillStyle = 'rgba(247, 115, 22, 0.8)';
+          } else {
+            // Normal detection - yellow
+            ctx.fillStyle = 'rgba(255, 191, 36, 0.8)';
+          }
+          
           ctx.fill();
           
           // Draw glow for detected debris
           ctx.beginPath();
           ctx.arc(debris.x, debris.y, debris.size + 3, 0, Math.PI * 2);
-          ctx.fillStyle = 'rgba(255, 191, 36, 0.3)';
+          
+          if (inCriticalRange) {
+            ctx.fillStyle = 'rgba(234, 56, 76, 0.3)';
+          } else if (inWarningRange) {
+            ctx.fillStyle = 'rgba(247, 115, 22, 0.3)';
+          } else {
+            ctx.fillStyle = 'rgba(255, 191, 36, 0.3)';
+          }
+          
           ctx.fill();
           
           // Draw line to spacecraft for close debris
-          if (distance < radarRangePixels * 0.5) {
+          if (inWarningRange) {
             ctx.beginPath();
             ctx.moveTo(sx, sy);
             ctx.lineTo(debris.x, debris.y);
-            ctx.strokeStyle = 'rgba(255, 191, 36, 0.2)';
+            
+            if (inCriticalRange) {
+              ctx.strokeStyle = 'rgba(234, 56, 76, 0.3)';
+            } else {
+              ctx.strokeStyle = 'rgba(247, 115, 22, 0.3)';
+            }
+            
             ctx.lineWidth = 1;
             ctx.stroke();
             
