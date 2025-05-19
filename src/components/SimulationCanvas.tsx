@@ -122,17 +122,36 @@ const SimulationCanvas = ({
       lastTime = currentTime;
       
       // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // The key change: translate the canvas context to keep spacecraft centered
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const spacecraft = spacecraftRef.current;
+      
+      // Save the current canvas state
+      ctx.save();
+      
+      // Fill background before translation
       ctx.fillStyle = 'rgba(10, 15, 30, 0.2)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
-      // Draw grid
-      drawGrid(ctx, canvas);
+      // Translate the entire canvas so the spacecraft stays centered
+      ctx.translate(
+        centerX - spacecraft.x,
+        centerY - spacecraft.y
+      );
+      
+      // Draw grid (the grid now moves relative to spacecraft)
+      drawGrid(ctx, canvas, spacecraft.x, spacecraft.y);
       
       // Apply navigation controls and AI logic
       applyNavigationAndAI(deltaTime);
       
-      // Update and draw spacecraft
+      // Update spacecraft velocity and position
       updateSpacecraft(deltaTime);
+      
+      // Draw spacecraft at center
       drawSpacecraft(ctx);
       
       // Draw radar range
@@ -145,54 +164,58 @@ const SimulationCanvas = ({
       // Check for collisions or close calls
       checkCollisions();
       
+      // Restore the canvas state
+      ctx.restore();
+      
       // Continue animation loop
       frameIdRef.current = requestAnimationFrame(animate);
     };
     
-    const drawGrid = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
+    const drawGrid = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, spacecraftX: number, spacecraftY: number) => {
       // Draw grid lines
       ctx.beginPath();
       ctx.strokeStyle = 'rgba(30, 58, 95, 0.3)';
       ctx.lineWidth = 1;
       
       const gridSize = 50;
-      const offsetX = spacecraftRef.current.x % gridSize;
-      const offsetY = spacecraftRef.current.y % gridSize;
+      
+      // Calculate grid boundaries based on the visible area
+      const startX = Math.floor((spacecraftX - canvas.width) / gridSize) * gridSize;
+      const endX = Math.ceil((spacecraftX + canvas.width) / gridSize) * gridSize;
+      const startY = Math.floor((spacecraftY - canvas.height) / gridSize) * gridSize;
+      const endY = Math.ceil((spacecraftY + canvas.height) / gridSize) * gridSize;
       
       // Vertical lines
-      for (let x = offsetX; x < canvas.width; x += gridSize) {
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
+      for (let x = startX; x <= endX; x += gridSize) {
+        ctx.moveTo(x, startY);
+        ctx.lineTo(x, endY);
       }
       
       // Horizontal lines
-      for (let y = offsetY; y < canvas.height; y += gridSize) {
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
+      for (let y = startY; y <= endY; y += gridSize) {
+        ctx.moveTo(startX, y);
+        ctx.lineTo(endX, y);
       }
       
       ctx.stroke();
       
-      // Draw center reference
-      const centerX = canvas.width / 2;
-      const centerY = canvas.height / 2;
-      
+      // Draw center reference circles at the origin (0,0)
       ctx.beginPath();
       ctx.strokeStyle = 'rgba(30, 58, 95, 0.5)';
       ctx.lineWidth = 1;
-      ctx.arc(centerX, centerY, 5, 0, Math.PI * 2);
+      ctx.arc(0, 0, 5, 0, Math.PI * 2);
       ctx.stroke();
       
       ctx.beginPath();
-      ctx.arc(centerX, centerY, 100, 0, Math.PI * 2);
+      ctx.arc(0, 0, 100, 0, Math.PI * 2);
       ctx.stroke();
       
       ctx.beginPath();
-      ctx.arc(centerX, centerY, 200, 0, Math.PI * 2);
+      ctx.arc(0, 0, 200, 0, Math.PI * 2);
       ctx.stroke();
       
       ctx.beginPath();
-      ctx.arc(centerX, centerY, 300, 0, Math.PI * 2);
+      ctx.arc(0, 0, 300, 0, Math.PI * 2);
       ctx.stroke();
     };
     
@@ -268,17 +291,13 @@ const SimulationCanvas = ({
       spacecraft.x += spacecraft.vx * deltaTime;
       spacecraft.y += spacecraft.vy * deltaTime;
       
-      // Keep spacecraft in bounds
-      if (spacecraft.x < 0) spacecraft.x = 0;
-      if (spacecraft.y < 0) spacecraft.y = 0;
-      if (spacecraft.x > canvas.width) spacecraft.x = canvas.width;
-      if (spacecraft.y > canvas.height) spacecraft.y = canvas.height;
+      // No need to keep spacecraft in bounds anymore since the view follows it
     };
     
     const drawSpacecraft = (ctx: CanvasRenderingContext2D) => {
       const { x, y } = spacecraftRef.current;
       
-      // Draw spacecraft
+      // Draw spacecraft at its position
       ctx.beginPath();
       ctx.arc(x, y, 5, 0, Math.PI * 2);
       ctx.fillStyle = '#05e9d1'; // Cyan spacecraft
@@ -319,12 +338,7 @@ const SimulationCanvas = ({
         debris.x += debris.vx * deltaTime;
         debris.y += debris.vy * deltaTime;
         
-        // Wrap around screen edges
-        const buffer = 100;
-        if (debris.x < -buffer) debris.x = canvas.width + buffer;
-        if (debris.x > canvas.width + buffer) debris.x = -buffer;
-        if (debris.y < -buffer) debris.y = canvas.height + buffer;
-        if (debris.y > canvas.height + buffer) debris.y = -buffer;
+        // No need to wrap around screen edges since the view follows the spacecraft
       });
     };
     
