@@ -151,10 +151,10 @@ const Simulation = () => {
       {/* Collision warning alert */}
       {showWarning && (
         <div className="absolute top-4 left-4 right-4 z-20">
-          <Alert variant="destructive" className="border-red-600 bg-red-900/40 text-white animate-pulse">
+          <Alert variant="destructive" className="border-red-600 bg-red-900/40 text-white animate-pulse glassmorphism">
             <div className="flex justify-between items-start">
               <div>
-                <AlertTitle className="text-red-200">COLLISION RISK DETECTED</AlertTitle>
+                <AlertTitle className="text-red-200 highlight-text">COLLISION RISK DETECTED</AlertTitle>
                 <AlertDescription>
                   Critical proximity warning! Space debris detected within {Math.round(radarRange * 0.3)}km range.
                 </AlertDescription>
@@ -173,99 +173,87 @@ const Simulation = () => {
       )}
 
       {/* Right sidebar with controls */}
-      <div className="absolute top-0 right-0 bottom-0 w-80 bg-space-panel bg-opacity-90 border-l border-space-grid overflow-y-auto z-10">
+      <div className="absolute top-0 right-0 bottom-0 w-80 glassmorphism border-l border-space-grid overflow-y-auto z-10">
         <div className="p-4 space-y-6">
           {/* Telemetry Section */}
-          <div className="space-y-4">
-            <div className="tech-panel-header">
-              <h2 className="text-sm font-semibold text-gray-200 pl-3">Telemetry</h2>
+          <div className="space-y-4 floating-panel">
+            <div className="section-title">
+              Telemetry
             </div>
 
             {/* Spacecraft Data */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="tech-panel p-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="glassmorphism p-3 glow-border">
                 <div className="flex items-center gap-2 mb-2">
-                  <Satellite className="h-4 w-4 text-gray-400" />
+                  <Satellite className="h-4 w-4 text-space-accent" />
                   <span className="text-xs text-gray-400">Spacecraft</span>
                 </div>
                 <div className="space-y-3">
-                  <div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-400">Velocity</span>
-                      <span className="font-mono">{telemetry.spacecraft.velocity} km/s</span>
-                    </div>
+                  <div className="data-cell">
+                    <span className="data-label">Velocity</span>
+                    <span className="data-value">{telemetry.spacecraft.velocity} km/s</span>
                   </div>
                   <div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-400">Altitude</span>
-                      <span className="font-mono">{telemetry.spacecraft.altitude} km</span>
+                    <div className="flex justify-between items-center text-sm mb-1">
+                      <span className="data-label">Altitude</span>
+                      <span className="data-value">{telemetry.spacecraft.altitude} km</span>
                     </div>
-                    <Progress value={telemetry.spacecraft.altitude / 10} className="h-1 mt-1" />
+                    <Progress value={telemetry.spacecraft.altitude / 10} className="h-1 mt-1 tech-progress-bar" />
                   </div>
                 </div>
               </div>
 
-              <div className="tech-panel p-3">
+              <div className="glassmorphism p-3 glow-border">
                 <div className="flex items-center gap-2 mb-2">
-                  <Target className="h-4 w-4 text-gray-400" />
+                  <Target className="h-4 w-4 text-space-accent" />
                   <span className="text-xs text-gray-400">Environment</span>
                 </div>
-                <div className="space-y-3">
-                  <div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-400">Radar Range</span>
-                      <span className="font-mono">{radarRange} km</span>
-                    </div>
+                <div className="space-y-2">
+                  <div className="data-cell">
+                    <span className="data-label">Radar Range</span>
+                    <span className="data-value">{radarRange} km</span>
                   </div>
-                  <div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-400">Debris Count</span>
-                      <span className="font-mono">{telemetry.environment.debrisCount}</span>
-                    </div>
+                  <div className="data-cell">
+                    <span className="data-label">Debris Count</span>
+                    <span className="data-value">{telemetry.environment.debrisCount}</span>
                   </div>
-                  <div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-400">Nearby Objects</span>
-                      <span className="font-mono">{telemetry.environment.nearbyObjects}</span>
-                    </div>
+                  <div className="data-cell">
+                    <span className="data-label">Nearby Objects</span>
+                    <span className="data-value">{telemetry.environment.nearbyObjects}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="tech-panel p-3">
+              <div className="glassmorphism p-3 glow-border">
                 <div className="flex items-center gap-2 mb-2">
-                  <Shield className="h-4 w-4 text-gray-400" />
+                  <Shield className="h-4 w-4 text-space-accent" />
                   <span className="text-xs text-gray-400">Safety</span>
                 </div>
                 <div className="space-y-3">
-                  <div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-400">Collision Risk</span>
-                      <span 
-                        className={`font-mono ${
-                          telemetry.safety.collisionRisk === 'Low' ? 'text-green-500' : 
-                          telemetry.safety.collisionRisk === 'Medium' ? 'text-yellow-500' : 
-                          'text-red-500'
-                        }`}
-                      >
-                        {telemetry.safety.collisionRisk}
-                      </span>
-                    </div>
+                  <div className="data-cell">
+                    <span className="data-label">Collision Risk</span>
+                    <span 
+                      className={`data-value ${
+                        telemetry.safety.collisionRisk === 'Low' ? 'text-green-500' : 
+                        telemetry.safety.collisionRisk === 'Medium' ? 'text-yellow-500' : 
+                        'text-red-500'
+                      }`}
+                    >
+                      {telemetry.safety.collisionRisk}
+                    </span>
                   </div>
                 </div>
               </div>
 
-              <div className="tech-panel p-3">
+              <div className="glassmorphism p-3 glow-border">
                 <div className="flex items-center gap-2 mb-2">
-                  <Power className="h-4 w-4 text-gray-400" />
+                  <Power className="h-4 w-4 text-space-accent" />
                   <span className="text-xs text-gray-400">System</span>
                 </div>
                 <div className="space-y-3">
-                  <div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-gray-400">AI Status</span>
-                      <span className="font-mono">{telemetry.system.aiStatus}</span>
-                    </div>
+                  <div className="data-cell">
+                    <span className="data-label">AI Status</span>
+                    <span className="data-value">{telemetry.system.aiStatus}</span>
                   </div>
                 </div>
               </div>
@@ -274,22 +262,22 @@ const Simulation = () => {
 
           {/* Command Core Section */}
           <div className="space-y-4">
-            <div className="tech-panel-header">
-              <h2 className="text-sm font-semibold text-gray-200 pl-3">Command Core</h2>
+            <div className="section-title">
+              Command Core
             </div>
             
-            <div className="tech-panel p-3">
+            <div className="glassmorphism p-3 dash-border">
               <div className="mb-4">
                 <span className="text-xs text-gray-400 block mb-2">Simulation Speed</span>
                 <div className="flex items-center justify-between gap-2">
                   <button 
-                    className="bg-space-panel border border-gray-700 rounded p-1 hover:bg-gray-800 transition-colors"
+                    className="neo-button"
                     onClick={() => handleSpeedChange(1)}
                   >
                     <RotateCcw className={`h-4 w-4 ${simSpeed === 1 ? 'text-space-accent' : 'text-gray-400'}`} />
                   </button>
                   <button 
-                    className="bg-space-panel border border-gray-700 rounded p-1 hover:bg-gray-800 transition-colors"
+                    className="neo-button"
                     onClick={toggleSimulation}
                   >
                     {isRunning ? 
@@ -298,13 +286,13 @@ const Simulation = () => {
                     }
                   </button>
                   <button 
-                    className="bg-space-panel border border-gray-700 rounded p-1 hover:bg-gray-800 transition-colors"
+                    className="neo-button"
                     onClick={() => handleSpeedChange(2)}
                   >
                     <FastForward className={`h-4 w-4 ${simSpeed === 2 ? 'text-space-accent' : 'text-gray-400'}`} />
                   </button>
                   <button 
-                    className="bg-space-panel border border-gray-700 rounded p-1 hover:bg-gray-800 transition-colors"
+                    className="neo-button"
                     onClick={() => handleSpeedChange(4)}
                   >
                     <SkipForward className={`h-4 w-4 ${simSpeed === 4 ? 'text-space-accent' : 'text-gray-400'}`} />
@@ -341,15 +329,15 @@ const Simulation = () => {
           
           {/* Navigation Hub */}
           <div className="space-y-4">
-            <div className="tech-panel-header">
-              <h2 className="text-sm font-semibold text-gray-200 pl-3">Navigation Hub</h2>
+            <div className="section-title">
+              Navigation Hub
             </div>
             
-            <div className="tech-panel p-3">
+            <div className="glassmorphism p-3 glow-border">
               <div className="grid grid-cols-3 gap-2 mb-4">
                 <div></div>
                 <button 
-                  className={`tech-button flex justify-center items-center ${navigationControls.up ? 'bg-space-accent/20 border-space-accent' : ''}`}
+                  className={`neo-button flex justify-center items-center ${navigationControls.up ? 'bg-space-accent/20 border-space-accent' : ''}`}
                   onMouseDown={() => handleNavigationPress('up')}
                   onMouseUp={() => handleNavigationRelease('up')}
                   onMouseLeave={() => handleNavigationRelease('up')}
@@ -361,7 +349,7 @@ const Simulation = () => {
                 <div></div>
                 
                 <button 
-                  className={`tech-button flex justify-center items-center ${navigationControls.left ? 'bg-space-accent/20 border-space-accent' : ''}`}
+                  className={`neo-button flex justify-center items-center ${navigationControls.left ? 'bg-space-accent/20 border-space-accent' : ''}`}
                   onMouseDown={() => handleNavigationPress('left')}
                   onMouseUp={() => handleNavigationRelease('left')}
                   onMouseLeave={() => handleNavigationRelease('left')}
@@ -371,7 +359,7 @@ const Simulation = () => {
                   <ArrowLeft className="h-4 w-4" />
                 </button>
                 <button 
-                  className={`tech-button flex justify-center items-center ${navigationControls.down ? 'bg-space-accent/20 border-space-accent' : ''}`}
+                  className={`neo-button flex justify-center items-center ${navigationControls.down ? 'bg-space-accent/20 border-space-accent' : ''}`}
                   onMouseDown={() => handleNavigationPress('down')}
                   onMouseUp={() => handleNavigationRelease('down')}
                   onMouseLeave={() => handleNavigationRelease('down')}
@@ -381,7 +369,7 @@ const Simulation = () => {
                   <ArrowDown className="h-4 w-4" />
                 </button>
                 <button 
-                  className={`tech-button flex justify-center items-center ${navigationControls.right ? 'bg-space-accent/20 border-space-accent' : ''}`}
+                  className={`neo-button flex justify-center items-center ${navigationControls.right ? 'bg-space-accent/20 border-space-accent' : ''}`}
                   onMouseDown={() => handleNavigationPress('right')}
                   onMouseUp={() => handleNavigationRelease('right')}
                   onMouseLeave={() => handleNavigationRelease('right')}
@@ -392,7 +380,7 @@ const Simulation = () => {
                 </button>
               </div>
               
-              <div className="text-xs text-gray-400 text-center">
+              <div className="text-xs text-center data-label">
                 {Object.values(navigationControls).some(control => control) 
                   ? 'Thrusters active' 
                   : 'Use controls to navigate spacecraft'}
@@ -402,11 +390,11 @@ const Simulation = () => {
           
           {/* AI Nexus */}
           <div className="space-y-4">
-            <div className="tech-panel-header">
-              <h2 className="text-sm font-semibold text-gray-200 pl-3">AI Nexus</h2>
+            <div className="section-title">
+              AI Nexus
             </div>
             
-            <div className="tech-panel p-3">
+            <div className="glassmorphism p-3 glow-border">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs text-gray-400">AI Control</span>
                 <div className="flex items-center">
@@ -422,21 +410,21 @@ const Simulation = () => {
               
               <div className="grid grid-cols-3 gap-2">
                 <button 
-                  className={`tech-button flex flex-col items-center justify-center py-2 ${aiMode === 'off' ? 'border-space-accent' : ''}`}
+                  className={`neo-button flex flex-col items-center justify-center py-2 ${aiMode === 'off' ? 'border-space-accent' : ''}`}
                   onClick={() => changeAiMode('off')}
                 >
                   <Power className="h-4 w-4 mb-1" />
                   <span className="text-xs">Off</span>
                 </button>
                 <button 
-                  className={`tech-button flex flex-col items-center justify-center py-2 ${aiMode === 'avoid' ? 'border-space-accent' : ''}`}
+                  className={`neo-button flex flex-col items-center justify-center py-2 ${aiMode === 'avoid' ? 'border-space-accent' : ''}`}
                   onClick={() => changeAiMode('avoid')}
                 >
                   <Shield className="h-4 w-4 mb-1" />
                   <span className="text-xs">Avoid</span>
                 </button>
                 <button 
-                  className={`tech-button flex flex-col items-center justify-center py-2 ${aiMode === 'follow' ? 'border-space-accent' : ''}`}
+                  className={`neo-button flex flex-col items-center justify-center py-2 ${aiMode === 'follow' ? 'border-space-accent' : ''}`}
                   onClick={() => changeAiMode('follow')}
                 >
                   <Target className="h-4 w-4 mb-1" />
@@ -447,7 +435,7 @@ const Simulation = () => {
               <div className="mt-3">
                 <div className="flex items-center mt-2">
                   <span className={`indicator-dot ${aiMode !== 'off' ? 'bg-space-accent' : 'bg-red-500'} mr-2`}></span>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs data-label">
                     {aiMode !== 'off' ? `AI ${aiMode} mode active` : 'AI navigation disabled'}
                   </span>
                 </div>
