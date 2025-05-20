@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
@@ -104,10 +103,10 @@ const Simulation = () => {
 
     const interval = setInterval(() => {
       // Randomize spacecraft telemetry
-      const newVelocity = Math.floor(Math.random() * 5);
+      const spacecraftVelocity = Math.floor(Math.random() * 5);
       
       // Randomize debris properties
-      const newVelocity = 2 + Math.random() * 3;
+      const debrisVelocity = 2 + Math.random() * 3;
       const newWeight = 80 + Math.random() * 150;
       const newSize = 0.5 + Math.random() * 3;
       
@@ -115,14 +114,14 @@ const Simulation = () => {
         ...prev,
         spacecraft: {
           ...prev.spacecraft,
-          velocity: newVelocity,
+          velocity: spacecraftVelocity,
         }
       }));
       
       // Update dashboard data
       setDebrisData(prev => ({
         ...prev,
-        velocity: newVelocity,
+        velocity: debrisVelocity,
         weight: newWeight,
         size: newSize
       }));
