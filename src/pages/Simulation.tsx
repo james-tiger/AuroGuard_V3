@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
@@ -69,7 +68,7 @@ const Simulation = () => {
     if (!isRunning) return;
     
     const timerInterval = setInterval(() => {
-      // Slowly decrease fuel and shields
+      // Slowly decrease fuel
       setTelemetry(prev => ({
         ...prev,
         spacecraft: {
@@ -136,18 +135,6 @@ const Simulation = () => {
     // Show warning alert for high risk
     setShowWarning(risk === 'High');
     
-    // Decrease shields based on risk level
-    if (risk !== 'Low') {
-      const damage = risk === 'High' ? 0.05 * simSpeed : 0.02 * simSpeed;
-      setTelemetry(prev => ({
-        ...prev,
-        spacecraft: {
-          ...prev.spacecraft,
-          shields: Math.max(0, prev.spacecraft.shields - damage)
-        }
-      }));
-    }
-    
     // If AI mode is on and risk is Medium or High, increment debris avoided
     if (aiMode !== 'off' && (risk === 'Medium' || risk === 'High')) {
       setSimulationStatistics(prev => ({
@@ -182,8 +169,7 @@ const Simulation = () => {
       // Update system integrity based on conditions
       const systemIntegrity = Math.max(
         80, 
-        98 - (telemetry.spacecraft.shields < 50 ? 10 : 0) - 
-           (telemetry.safety.collisionRisk === 'High' ? 5 : 0)
+        98 - (telemetry.safety.collisionRisk === 'High' ? 5 : 0)
       );
       
       // Update fuel efficiency calculation
@@ -242,7 +228,7 @@ const Simulation = () => {
     }, 3000 / simSpeed);
 
     return () => clearInterval(interval);
-  }, [isRunning, simSpeed, telemetry.spacecraft.shields, telemetry.safety.collisionRisk, navigationControls]);
+  }, [isRunning, simSpeed, telemetry.safety.collisionRisk, navigationControls]);
 
   // Handle navigation button press/release
   const handleNavigationPress = (direction: 'up' | 'down' | 'left' | 'right') => {
@@ -331,26 +317,6 @@ const Simulation = () => {
           onDebrisCountChange={handleDebrisCountChange}
           onCollisionRiskChange={handleCollisionRiskChange}
         />
-      </div>
-
-      {/* Statistics Display */}
-      <div className="absolute top-4 left-4 z-20">
-        <div className="glassmorphism p-3 glow-border">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-xs text-gray-400">Distance</span>
-              <span className="text-sm font-mono text-space-accent">{Math.round(simulationStatistics.distanceTraveled)} km</span>
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-xs text-gray-400">Debris Avoided</span>
-              <span className="text-sm font-mono text-space-accent">{simulationStatistics.debrisAvoided}</span>
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-xs text-gray-400">Efficiency</span>
-              <span className="text-sm font-mono text-space-accent">{simulationStatistics.fuelEfficiency}%</span>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Collision warning alert */}
