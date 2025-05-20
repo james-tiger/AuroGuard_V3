@@ -14,16 +14,21 @@ const INITIAL_TELEMETRY = {
   spacecraft: {
     velocity: 0,
     altitude: 400,
+    fuel: 100,
+    shields: 100
   },
   environment: {
     debrisCount: 25,
     nearbyObjects: 0,
+    solarActivity: 'Low'
   },
   safety: {
     collisionRisk: 'Low',
+    radiationLevel: 'Normal'
   },
   system: {
     aiStatus: 'Inactive',
+    systemIntegrity: 98
   }
 };
 
@@ -41,14 +46,37 @@ const Simulation = () => {
     right: false
   });
   const [activeTab, setActiveTab] = useState('controls');
+  const [missionTime, setMissionTime] = useState(0);
   const [debrisData, setDebrisData] = useState({
     count: INITIAL_TELEMETRY.environment.debrisCount,
     nearby: INITIAL_TELEMETRY.environment.nearbyObjects,
     risk: INITIAL_TELEMETRY.safety.collisionRisk as 'Low' | 'Medium' | 'High',
     velocity: 2.5,
     weight: 120,
-    size: 1.8
+    size: 1.8,
+    composition: 'Mixed',
+    detectionHistory: [0]
   });
+  
+  // Mission timer
+  useEffect(() => {
+    if (!isRunning) return;
+    
+    const timerInterval = setInterval(() => {
+      setMissionTime(prev => prev + simSpeed);
+      
+      // Slowly decrease fuel and shields
+      setTelemetry(prev => ({
+        ...prev,
+        spacecraft: {
+          ...prev.spacecraft,
+          fuel: Math.max(0, prev.spacecraft.fuel - 0.01 * simSpeed)
+        }
+      }));
+    }, 1000);
+    
+    return () => clearInterval(timerInterval);
+  }, [isRunning, simSpeed]);
 
   // Handle debris count changes from the canvas
   const handleDebrisCountChange = (count: number) => {
@@ -61,10 +89,17 @@ const Simulation = () => {
     }));
     
     // Update dashboard data
-    setDebrisData(prev => ({
-      ...prev,
-      count: count
-    }));
+    setDebrisData(prev => {
+      // Add to detection history (keep last 20 measurements)
+      const newHistory = [...prev.detectionHistory, count];
+      if (newHistory.length > 20) newHistory.shift();
+      
+      return {
+        ...prev,
+        count: count,
+        detectionHistory: newHistory
+      };
+    });
   };
 
   // Handle collision risk changes from the canvas
@@ -90,6 +125,18 @@ const Simulation = () => {
     
     // Show warning alert for high risk
     setShowWarning(risk === 'High');
+    
+    // Decrease shields based on risk level
+    if (risk !== 'Low') {
+      const damage = risk === 'High' ? 0.05 * simSpeed : 0.02 * simSpeed;
+      setTelemetry(prev => ({
+        ...prev,
+        spacecraft: {
+          ...prev.spacecraft,
+          shields: Math.max(0, prev.spacecraft.shields - damage)
+        }
+      }));
+    }
   };
 
   // Function to dismiss warning
@@ -110,31 +157,68 @@ const Simulation = () => {
       const newWeight = 80 + Math.random() * 150;
       const newSize = 0.5 + Math.random() * 3;
       
+      // Randomize environment data
+      const solarActivityOptions = ['Low', 'Moderate', 'High'] as const;
+      const solarActivity = solarActivityOptions[Math.floor(Math.random() * 3)];
+      
+      // Update system integrity based on conditions
+      const systemIntegrity = Math.max(
+        80, 
+        98 - (telemetry.spacecraft.shields < 50 ? 10 : 0) - 
+           (telemetry.safety.collisionRisk === 'High' ? 5 : 0)
+      );
+      
       setTelemetry(prev => ({
         ...prev,
         spacecraft: {
           ...prev.spacecraft,
           velocity: spacecraftVelocity,
+        },
+        environment: {
+          ...prev.environment,
+          solarActivity
+        },
+        system: {
+          ...prev.system,
+          systemIntegrity
+        },
+        safety: {
+          ...prev.safety,
+          radiationLevel: solarActivity === 'High' ? 'Elevated' : 'Normal'
         }
       }));
+      
+      // Random compositions for debris
+      const compositions = ['Metallic', 'Composite', 'Unknown', 'Mixed'];
+      const randomComposition = compositions[Math.floor(Math.random() * compositions.length)];
       
       // Update dashboard data
       setDebrisData(prev => ({
         ...prev,
         velocity: debrisVelocity,
         weight: newWeight,
-        size: newSize
+        size: newSize,
+        composition: randomComposition
       }));
     }, 3000 / simSpeed);
 
     return () => clearInterval(interval);
-  }, [isRunning, simSpeed]);
+  }, [isRunning, simSpeed, telemetry.spacecraft.shields, telemetry.safety.collisionRisk]);
 
   // Handle navigation button press/release
   const handleNavigationPress = (direction: 'up' | 'down' | 'left' | 'right') => {
     setNavigationControls(prev => ({
       ...prev,
       [direction]: true
+    }));
+    
+    // Reduce fuel when navigating
+    setTelemetry(prev => ({
+      ...prev,
+      spacecraft: {
+        ...prev.spacecraft,
+        fuel: Math.max(0, prev.spacecraft.fuel - 0.1)
+      }
     }));
   };
 
@@ -170,6 +254,14 @@ const Simulation = () => {
     setRadarRange(value[0]);
   };
 
+  // Format mission time
+  const formatMissionTime = () => {
+    const hours = Math.floor(missionTime / 3600);
+    const minutes = Math.floor((missionTime % 3600) / 60);
+    const seconds = missionTime % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+
   return (
     <div className="flex-1 relative overflow-hidden starfield">
       {/* Main simulation area */}
@@ -185,9 +277,19 @@ const Simulation = () => {
         />
       </div>
 
+      {/* Mission Time Display */}
+      <div className="absolute top-4 left-4 z-20">
+        <div className="glassmorphism p-2 glow-border">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-400">Mission Time</span>
+            <span className="text-sm font-mono text-space-accent">{formatMissionTime()}</span>
+          </div>
+        </div>
+      </div>
+
       {/* Collision warning alert */}
       {showWarning && (
-        <div className="absolute top-4 left-4 right-4 z-20">
+        <div className="absolute top-16 left-4 right-4 z-20">
           <Alert variant="destructive" className="border-red-600 bg-red-900/40 text-white animate-pulse glassmorphism">
             <div className="flex justify-between items-start">
               <div>
@@ -205,6 +307,23 @@ const Simulation = () => {
                 <X className="h-4 w-4" />
               </Button>
             </div>
+          </Alert>
+        </div>
+      )}
+
+      {/* Critical System Status */}
+      {(telemetry.spacecraft.fuel < 20 || telemetry.spacecraft.shields < 30) && (
+        <div className="absolute bottom-4 left-4 right-4 z-20">
+          <Alert variant="destructive" className="border-amber-600 bg-amber-900/40 text-white glassmorphism">
+            <AlertTitle className="text-amber-200">SYSTEM ALERT</AlertTitle>
+            <AlertDescription>
+              {telemetry.spacecraft.fuel < 20 && (
+                <div className="mb-1">Fuel levels critical: {Math.round(telemetry.spacecraft.fuel)}% remaining</div>
+              )}
+              {telemetry.spacecraft.shields < 30 && (
+                <div>Shield integrity compromised: {Math.round(telemetry.spacecraft.shields)}% remaining</div>
+              )}
+            </AlertDescription>
           </Alert>
         </div>
       )}
@@ -244,6 +363,34 @@ const Simulation = () => {
                         </div>
                         <Progress value={telemetry.spacecraft.altitude / 10} className="h-1 mt-1 tech-progress-bar" />
                       </div>
+                      <div>
+                        <div className="flex justify-between items-center text-sm mb-1">
+                          <span className="data-label">Fuel</span>
+                          <span className={`data-value ${telemetry.spacecraft.fuel < 20 ? 'text-red-500' : ''}`}>
+                            {Math.round(telemetry.spacecraft.fuel)}%
+                          </span>
+                        </div>
+                        <Progress 
+                          value={telemetry.spacecraft.fuel} 
+                          className={`h-1 mt-1 ${
+                            telemetry.spacecraft.fuel < 20 ? 'bg-red-900' : 'tech-progress-bar'
+                          }`} 
+                        />
+                      </div>
+                      <div>
+                        <div className="flex justify-between items-center text-sm mb-1">
+                          <span className="data-label">Shields</span>
+                          <span className={`data-value ${telemetry.spacecraft.shields < 30 ? 'text-red-500' : ''}`}>
+                            {Math.round(telemetry.spacecraft.shields)}%
+                          </span>
+                        </div>
+                        <Progress 
+                          value={telemetry.spacecraft.shields} 
+                          className={`h-1 mt-1 ${
+                            telemetry.spacecraft.shields < 30 ? 'bg-red-900' : 'tech-progress-bar'
+                          }`} 
+                        />
+                      </div>
                     </div>
                   </div>
 
@@ -264,6 +411,15 @@ const Simulation = () => {
                       <div className="data-cell">
                         <span className="data-label">Nearby Objects</span>
                         <span className="data-value">{telemetry.environment.nearbyObjects}</span>
+                      </div>
+                      <div className="data-cell">
+                        <span className="data-label">Solar Activity</span>
+                        <span className={`data-value ${
+                          telemetry.environment.solarActivity === 'High' ? 'text-red-500' : 
+                          telemetry.environment.solarActivity === 'Moderate' ? 'text-yellow-500' : 'text-green-500'
+                        }`}>
+                          {telemetry.environment.solarActivity}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -286,6 +442,16 @@ const Simulation = () => {
                           {telemetry.safety.collisionRisk}
                         </span>
                       </div>
+                      <div className="data-cell">
+                        <span className="data-label">Radiation Level</span>
+                        <span 
+                          className={`data-value ${
+                            telemetry.safety.radiationLevel === 'Normal' ? 'text-green-500' : 'text-yellow-500'
+                          }`}
+                        >
+                          {telemetry.safety.radiationLevel}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
@@ -298,6 +464,18 @@ const Simulation = () => {
                       <div className="data-cell">
                         <span className="data-label">AI Status</span>
                         <span className="data-value">{telemetry.system.aiStatus}</span>
+                      </div>
+                      <div>
+                        <div className="flex justify-between items-center text-sm mb-1">
+                          <span className="data-label">System Integrity</span>
+                          <span className={`data-value ${telemetry.system.systemIntegrity < 90 ? 'text-yellow-500' : ''}`}>
+                            {telemetry.system.systemIntegrity}%
+                          </span>
+                        </div>
+                        <Progress 
+                          value={telemetry.system.systemIntegrity} 
+                          className="h-1 mt-1 tech-progress-bar" 
+                        />
                       </div>
                     </div>
                   </div>
@@ -387,6 +565,7 @@ const Simulation = () => {
                       onMouseLeave={() => handleNavigationRelease('up')}
                       onTouchStart={() => handleNavigationPress('up')}
                       onTouchEnd={() => handleNavigationRelease('up')}
+                      disabled={telemetry.spacecraft.fuel <= 0}
                     >
                       <ArrowUp className="h-4 w-4" />
                     </button>
@@ -399,6 +578,7 @@ const Simulation = () => {
                       onMouseLeave={() => handleNavigationRelease('left')}
                       onTouchStart={() => handleNavigationPress('left')}
                       onTouchEnd={() => handleNavigationRelease('left')}
+                      disabled={telemetry.spacecraft.fuel <= 0}
                     >
                       <ArrowLeft className="h-4 w-4" />
                     </button>
@@ -409,6 +589,7 @@ const Simulation = () => {
                       onMouseLeave={() => handleNavigationRelease('down')}
                       onTouchStart={() => handleNavigationPress('down')}
                       onTouchEnd={() => handleNavigationRelease('down')}
+                      disabled={telemetry.spacecraft.fuel <= 0}
                     >
                       <ArrowDown className="h-4 w-4" />
                     </button>
@@ -419,15 +600,20 @@ const Simulation = () => {
                       onMouseLeave={() => handleNavigationRelease('right')}
                       onTouchStart={() => handleNavigationPress('right')}
                       onTouchEnd={() => handleNavigationRelease('right')}
+                      disabled={telemetry.spacecraft.fuel <= 0}
                     >
                       <ArrowRight className="h-4 w-4" />
                     </button>
                   </div>
                   
                   <div className="text-xs text-center data-label">
-                    {Object.values(navigationControls).some(control => control) 
-                      ? 'Thrusters active' 
-                      : 'Use controls to navigate spacecraft'}
+                    {telemetry.spacecraft.fuel <= 0 ? (
+                      <span className="text-red-500">Fuel depleted - Thrusters offline</span>
+                    ) : Object.values(navigationControls).some(control => control) ? (
+                      'Thrusters active'
+                    ) : (
+                      'Use controls to navigate spacecraft'
+                    )}
                   </div>
                 </div>
               </div>
@@ -463,6 +649,7 @@ const Simulation = () => {
                     <button 
                       className={`neo-button flex flex-col items-center justify-center py-2 ${aiMode === 'avoid' ? 'border-space-accent' : ''}`}
                       onClick={() => changeAiMode('avoid')}
+                      disabled={telemetry.spacecraft.fuel <= 0}
                     >
                       <Shield className="h-4 w-4 mb-1" />
                       <span className="text-xs">Avoid</span>
@@ -470,6 +657,7 @@ const Simulation = () => {
                     <button 
                       className={`neo-button flex flex-col items-center justify-center py-2 ${aiMode === 'follow' ? 'border-space-accent' : ''}`}
                       onClick={() => changeAiMode('follow')}
+                      disabled={telemetry.spacecraft.fuel <= 0}
                     >
                       <Target className="h-4 w-4 mb-1" />
                       <span className="text-xs">Follow</span>
