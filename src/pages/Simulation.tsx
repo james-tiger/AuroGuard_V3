@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
@@ -8,6 +9,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DebrisDashboard from '@/components/DebrisDashboard';
+import { toast } from '@/components/ui/sonner';
 
 // Mock data for simulation
 const INITIAL_TELEMETRY = {
@@ -46,7 +48,6 @@ const Simulation = () => {
     right: false
   });
   const [activeTab, setActiveTab] = useState('controls');
-  const [missionTime, setMissionTime] = useState(0);
   const [debrisData, setDebrisData] = useState({
     count: INITIAL_TELEMETRY.environment.debrisCount,
     nearby: INITIAL_TELEMETRY.environment.nearbyObjects,
@@ -57,14 +58,17 @@ const Simulation = () => {
     composition: 'Mixed',
     detectionHistory: [0]
   });
+  const [simulationStatistics, setSimulationStatistics] = useState({
+    debrisAvoided: 0,
+    distanceTraveled: 0,
+    fuelEfficiency: 100
+  });
   
-  // Mission timer
+  // Simulation updates
   useEffect(() => {
     if (!isRunning) return;
     
     const timerInterval = setInterval(() => {
-      setMissionTime(prev => prev + simSpeed);
-      
       // Slowly decrease fuel and shields
       setTelemetry(prev => ({
         ...prev,
@@ -73,10 +77,16 @@ const Simulation = () => {
           fuel: Math.max(0, prev.spacecraft.fuel - 0.01 * simSpeed)
         }
       }));
+      
+      // Increase distance traveled
+      setSimulationStatistics(prev => ({
+        ...prev,
+        distanceTraveled: prev.distanceTraveled + (0.05 * simSpeed * telemetry.spacecraft.velocity)
+      }));
     }, 1000);
     
     return () => clearInterval(timerInterval);
-  }, [isRunning, simSpeed]);
+  }, [isRunning, simSpeed, telemetry.spacecraft.velocity]);
 
   // Handle debris count changes from the canvas
   const handleDebrisCountChange = (count: number) => {
@@ -137,6 +147,14 @@ const Simulation = () => {
         }
       }));
     }
+    
+    // If AI mode is on and risk is Medium or High, increment debris avoided
+    if (aiMode !== 'off' && (risk === 'Medium' || risk === 'High')) {
+      setSimulationStatistics(prev => ({
+        ...prev,
+        debrisAvoided: prev.debrisAvoided + 1
+      }));
+    }
   };
 
   // Function to dismiss warning
@@ -166,6 +184,12 @@ const Simulation = () => {
         80, 
         98 - (telemetry.spacecraft.shields < 50 ? 10 : 0) - 
            (telemetry.safety.collisionRisk === 'High' ? 5 : 0)
+      );
+      
+      // Update fuel efficiency calculation
+      const fuelEfficiency = Math.max(
+        60,
+        100 - (Object.values(navigationControls).filter(Boolean).length * 5)
       );
       
       setTelemetry(prev => ({
@@ -200,10 +224,25 @@ const Simulation = () => {
         size: newSize,
         composition: randomComposition
       }));
+      
+      // Update simulation statistics
+      setSimulationStatistics(prev => ({
+        ...prev,
+        fuelEfficiency
+      }));
+      
+      // Show toast for important events
+      if (solarActivity === 'High' && Math.random() > 0.7) {
+        toast("Solar Activity Warning", {
+          description: "Increased solar radiation detected. Shield monitoring advised.",
+          duration: 3000
+        });
+      }
+      
     }, 3000 / simSpeed);
 
     return () => clearInterval(interval);
-  }, [isRunning, simSpeed, telemetry.spacecraft.shields, telemetry.safety.collisionRisk]);
+  }, [isRunning, simSpeed, telemetry.spacecraft.shields, telemetry.safety.collisionRisk, navigationControls]);
 
   // Handle navigation button press/release
   const handleNavigationPress = (direction: 'up' | 'down' | 'left' | 'right') => {
@@ -231,10 +270,12 @@ const Simulation = () => {
 
   const handleSpeedChange = (speed: number) => {
     setSimSpeed(speed);
+    toast(`Simulation Speed: ${speed}x`, { duration: 2000 });
   };
 
   const toggleSimulation = () => {
     setIsRunning(prev => !prev);
+    toast(isRunning ? "Simulation Paused" : "Simulation Resumed", { duration: 2000 });
   };
 
   const changeAiMode = (mode: string) => {
@@ -247,6 +288,8 @@ const Simulation = () => {
         aiStatus: mode === 'off' ? 'Inactive' : mode === 'avoid' ? 'Avoidance Active' : 'Tracking Active'
       }
     }));
+    
+    toast(`AI Mode: ${mode === 'off' ? 'Disabled' : mode === 'avoid' ? 'Avoidance' : 'Tracking'}`, { duration: 2000 });
   };
 
   // Handle radar range change
@@ -254,12 +297,25 @@ const Simulation = () => {
     setRadarRange(value[0]);
   };
 
-  // Format mission time
-  const formatMissionTime = () => {
-    const hours = Math.floor(missionTime / 3600);
-    const minutes = Math.floor((missionTime % 3600) / 60);
-    const seconds = missionTime % 60;
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  // Reset simulation
+  const resetSimulation = () => {
+    setTelemetry(INITIAL_TELEMETRY);
+    setSimSpeed(1);
+    setIsRunning(true);
+    setAiMode('off');
+    setShowWarning(false);
+    setNavigationControls({
+      up: false,
+      down: false,
+      left: false,
+      right: false
+    });
+    setSimulationStatistics({
+      debrisAvoided: 0,
+      distanceTraveled: 0,
+      fuelEfficiency: 100
+    });
+    toast("Simulation Reset", { duration: 2000 });
   };
 
   return (
@@ -277,19 +333,29 @@ const Simulation = () => {
         />
       </div>
 
-      {/* Mission Time Display */}
+      {/* Statistics Display */}
       <div className="absolute top-4 left-4 z-20">
-        <div className="glassmorphism p-2 glow-border">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400">Mission Time</span>
-            <span className="text-sm font-mono text-space-accent">{formatMissionTime()}</span>
+        <div className="glassmorphism p-3 glow-border">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-xs text-gray-400">Distance</span>
+              <span className="text-sm font-mono text-space-accent">{Math.round(simulationStatistics.distanceTraveled)} km</span>
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-xs text-gray-400">Debris Avoided</span>
+              <span className="text-sm font-mono text-space-accent">{simulationStatistics.debrisAvoided}</span>
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-xs text-gray-400">Efficiency</span>
+              <span className="text-sm font-mono text-space-accent">{simulationStatistics.fuelEfficiency}%</span>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Collision warning alert */}
       {showWarning && (
-        <div className="absolute top-16 left-4 right-4 z-20">
+        <div className="absolute top-24 left-4 right-4 z-20">
           <Alert variant="destructive" className="border-red-600 bg-red-900/40 text-white animate-pulse glassmorphism">
             <div className="flex justify-between items-start">
               <div>
@@ -546,6 +612,13 @@ const Simulation = () => {
                       </div>
                     </div>
                   </div>
+                  
+                  <Button 
+                    className="w-full mt-4 bg-space-panel border-space-accent hover:bg-space-accent/20"
+                    onClick={resetSimulation}
+                  >
+                    Reset Simulation
+                  </Button>
                 </div>
               </div>
               
