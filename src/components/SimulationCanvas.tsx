@@ -402,9 +402,9 @@ const SimulationCanvas = ({
       const spacecraft = spacecraftRef.current;
       const thrustPower = 0.01 * deltaTime;
       
-      // Manual navigation controls
-      if (navigationControls.up) spacecraft.vy -= thrustPower;
-      if (navigationControls.down) spacecraft.vy += thrustPower;
+      // Manual navigation controls - CHANGED: reversed up control to blow down
+      if (navigationControls.up) spacecraft.vy += thrustPower; // Changed from -= to +=
+      if (navigationControls.down) spacecraft.vy -= thrustPower; // Changed from += to -=
       if (navigationControls.left) spacecraft.vx -= thrustPower;
       if (navigationControls.right) spacecraft.vx += thrustPower;
       

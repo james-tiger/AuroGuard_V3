@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
@@ -589,7 +588,7 @@ const Simulation = () => {
                 </div>
               </div>
               
-              {/* Navigation Hub */}
+              {/* Navigation Hub - Updated control labels */}
               <div className="space-y-4">
                 <div className="section-title">
                   Navigation Hub
@@ -607,7 +606,8 @@ const Simulation = () => {
                       onTouchEnd={() => handleNavigationRelease('up')}
                       disabled={telemetry.spacecraft.fuel <= 0}
                     >
-                      <ArrowUp className="h-4 w-4" />
+                      <ArrowDown className="h-4 w-4" />
+                      <span className="text-xs ml-1">Blow Down</span>
                     </button>
                     <div></div>
                     
@@ -631,7 +631,7 @@ const Simulation = () => {
                       onTouchEnd={() => handleNavigationRelease('down')}
                       disabled={telemetry.spacecraft.fuel <= 0}
                     >
-                      <ArrowDown className="h-4 w-4" />
+                      <ArrowUp className="h-4 w-4" />
                     </button>
                     <button 
                       className={`neo-button flex justify-center items-center ${navigationControls.right ? 'bg-space-accent/20 border-space-accent' : ''}`}
