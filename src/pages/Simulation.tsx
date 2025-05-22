@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
@@ -319,9 +320,9 @@ const Simulation = () => {
         />
       </div>
 
-      {/* Collision warning alert */}
+      {/* Collision warning alert - moved to left side */}
       {showWarning && (
-        <div className="absolute top-24 left-4 right-4 z-20">
+        <div className="absolute top-24 left-4 right-auto z-20 max-w-xs">
           <Alert variant="destructive" className="border-red-600 bg-red-900/40 text-white animate-pulse glassmorphism">
             <div className="flex justify-between items-start">
               <div>
@@ -343,9 +344,9 @@ const Simulation = () => {
         </div>
       )}
 
-      {/* Critical System Status */}
+      {/* Critical System Status - also moved to left side */}
       {(telemetry.spacecraft.fuel < 20 || telemetry.spacecraft.shields < 30) && (
-        <div className="absolute bottom-4 left-4 right-4 z-20">
+        <div className="absolute bottom-4 left-4 right-auto z-20 max-w-xs">
           <Alert variant="destructive" className="border-amber-600 bg-amber-900/40 text-white glassmorphism">
             <AlertTitle className="text-amber-200">SYSTEM ALERT</AlertTitle>
             <AlertDescription>

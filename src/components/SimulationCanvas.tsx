@@ -222,6 +222,7 @@ const SimulationCanvas = ({
           description: `Space debris detected at dangerous distance (within ${Math.round(criticalRangePixels/10)}km)!`,
           icon: <AlertTriangle className="h-5 w-5 text-red-500" />,
           duration: 10000,
+          position: "top-left", // Changed from default to top-left
           style: { 
             backgroundColor: '#222', 
             border: '1px solid #ea384c',
@@ -242,6 +243,7 @@ const SimulationCanvas = ({
           description: `Space debris approaching within ${Math.round(closeRangePixels/10)}km - maintain vigilance`,
           icon: <AlertTriangle className="h-5 w-5 text-yellow-500" />,
           duration: 8000,
+          position: "top-left", // Changed from default to top-left
           style: { 
             backgroundColor: '#222', 
             border: '1px solid #F97316',
@@ -479,44 +481,46 @@ const SimulationCanvas = ({
       // No need to keep spacecraft in bounds anymore since the view follows it
     };
     
-    const checkCollisions = () => {
-      const { x, y } = spacecraftRef.current;
-      // Use a percentage of radar range for collision detection, with a minimum value
-      const collisionThreshold = Math.min(15, radarRange * 10 * 0.1);
+  // Check for collisions function modified to use toast position on left
+  const checkCollisions = () => {
+    const { x, y } = spacecraftRef.current;
+    // Use a percentage of radar range for collision detection, with a minimum value
+    const collisionThreshold = Math.min(15, radarRange * 10 * 0.1);
+    
+    debrisRef.current.forEach(debris => {
+      const dx = debris.x - x;
+      const dy = debris.y - y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
       
-      debrisRef.current.forEach(debris => {
-        const dx = debris.x - x;
-        const dy = debris.y - y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance < collisionThreshold) {
+        // Collision detected - in a real app you'd handle this with more sophisticated logic
+        console.log('Collision detected!');
         
-        if (distance < collisionThreshold) {
-          // Collision detected - in a real app you'd handle this with more sophisticated logic
-          console.log('Collision detected!');
-          
-          // Visual feedback - flash red
-          if (ctx) {
-            ctx.fillStyle = 'rgba(234, 56, 76, 0.3)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-          }
-          
-          // Show collision notification
-          const currentTime = Date.now();
-          if (currentTime - lastNotificationTimeRef.current > 1000) {
-            toast("COLLISION DETECTED", {
-              description: "Impact with space debris!",
-              icon: <AlertTriangle className="h-5 w-5 text-red-500" />,
-              duration: 3000,
-              style: { 
-                backgroundColor: '#222', 
-                border: '2px solid #ea384c',
-                color: 'white' 
-              },
-            });
-            lastNotificationTimeRef.current = currentTime;
-          }
+        // Visual feedback - flash red
+        if (ctx) {
+          ctx.fillStyle = 'rgba(234, 56, 76, 0.3)';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
-      });
-    };
+        
+        // Show collision notification
+        const currentTime = Date.now();
+        if (currentTime - lastNotificationTimeRef.current > 1000) {
+          toast("COLLISION DETECTED", {
+            description: "Impact with space debris!",
+            icon: <AlertTriangle className="h-5 w-5 text-red-500" />,
+            duration: 3000,
+            position: "top-left", // Changed from default to top-left
+            style: { 
+              backgroundColor: '#222', 
+              border: '2px solid #ea384c',
+              color: 'white' 
+            },
+          });
+          lastNotificationTimeRef.current = currentTime;
+        }
+      }
+    });
+  };
     
     const drawSpacecraft = (ctx: CanvasRenderingContext2D) => {
       const { x, y } = spacecraftRef.current;
