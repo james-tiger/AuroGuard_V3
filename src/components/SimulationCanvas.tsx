@@ -1,5 +1,4 @@
-
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { toast } from '@/components/ui/sonner';
 import { AlertTriangle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -36,6 +35,12 @@ const SimulationCanvas = ({
   const frameIdRef = useRef<number>(0);
   const lastNotificationTimeRef = useRef<number>(0);
   const lastYellowNotificationTimeRef = useRef<number>(0);
+  
+  // View controls
+  const [zoomLevel, setZoomLevel] = useState<number>(1);
+  const [panOffset, setPanOffset] = useState<{x: number, y: number}>({x: 0, y: 0});
+  const isDraggingRef = useRef<boolean>(false);
+  const lastMousePosRef = useRef<{x: number, y: number}>({x: 0, y: 0});
   
   // Initialize simulation
   useEffect(() => {
@@ -96,6 +101,81 @@ const SimulationCanvas = ({
       cancelAnimationFrame(frameIdRef.current);
     };
   }, []);
+  
+  // Mouse event handlers for pan and zoom
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    
+    const canvas = canvasRef.current;
+    
+    const handleMouseDown = (e: MouseEvent) => {
+      isDraggingRef.current = true;
+      lastMousePosRef.current = { x: e.clientX, y: e.clientY };
+      canvas.style.cursor = 'grabbing';
+    };
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDraggingRef.current) {
+        const dx = e.clientX - lastMousePosRef.current.x;
+        const dy = e.clientY - lastMousePosRef.current.y;
+        
+        setPanOffset(prev => ({
+          x: prev.x + dx / zoomLevel,
+          y: prev.y + dy / zoomLevel
+        }));
+        
+        lastMousePosRef.current = { x: e.clientX, y: e.clientY };
+      }
+    };
+    
+    const handleMouseUp = () => {
+      isDraggingRef.current = false;
+      canvas.style.cursor = 'grab';
+    };
+    
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      
+      const delta = -Math.sign(e.deltaY) * 0.1;
+      const newZoom = Math.max(0.5, Math.min(3, zoomLevel + delta));
+      
+      // Calculate cursor position relative to canvas
+      const rect = canvas.getBoundingClientRect();
+      const cursorX = e.clientX - rect.left;
+      const cursorY = e.clientY - rect.top;
+      
+      // Calculate where the cursor is in the scene before zooming
+      const sceneX = cursorX / zoomLevel - panOffset.x;
+      const sceneY = cursorY / zoomLevel - panOffset.y;
+      
+      // Calculate new offsets to zoom towards cursor position
+      const newPanOffsetX = -sceneX + cursorX / newZoom;
+      const newPanOffsetY = -sceneY + cursorY / newZoom;
+      
+      setPanOffset({
+        x: newPanOffsetX,
+        y: newPanOffsetY
+      });
+      
+      setZoomLevel(newZoom);
+    };
+    
+    // Enable grab cursor by default
+    canvas.style.cursor = 'grab';
+    
+    // Add event listeners
+    canvas.addEventListener('mousedown', handleMouseDown);
+    canvas.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    canvas.addEventListener('wheel', handleWheel, { passive: false });
+    
+    return () => {
+      canvas.removeEventListener('mousedown', handleMouseDown);
+      canvas.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      canvas.removeEventListener('wheel', handleWheel);
+    };
+  }, [zoomLevel]);
   
   // Update visible debris count and collision risk based on radar range
   useEffect(() => {
@@ -204,17 +284,27 @@ const SimulationCanvas = ({
       // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      // The key change: translate the canvas context to keep spacecraft centered
+      // Save the current state before applying transformations
+      ctx.save();
+      
+      // Apply zoom and pan transformations
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.scale(zoomLevel, zoomLevel);
+      ctx.translate(-canvas.width / 2 + panOffset.x, -canvas.height / 2 + panOffset.y);
+      
+      // Translate to keep spacecraft centered (adjusted for zoom and pan)
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
       const spacecraft = spacecraftRef.current;
       
-      // Save the current canvas state
-      ctx.save();
-      
       // Fill background before translation
       ctx.fillStyle = 'rgba(10, 15, 30, 0.2)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(
+        -panOffset.x - centerX / zoomLevel, 
+        -panOffset.y - centerY / zoomLevel, 
+        canvas.width / zoomLevel, 
+        canvas.height / zoomLevel
+      );
       
       // Translate the entire canvas so the spacecraft stays centered
       ctx.translate(
@@ -247,6 +337,11 @@ const SimulationCanvas = ({
       // Restore the canvas state
       ctx.restore();
       
+      // Draw zoom level indicator
+      ctx.font = '12px monospace';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.fillText(`Zoom: ${zoomLevel.toFixed(1)}x`, 10, 20);
+      
       // Continue animation loop
       frameIdRef.current = requestAnimationFrame(animate);
     };
@@ -258,12 +353,14 @@ const SimulationCanvas = ({
       ctx.lineWidth = 1;
       
       const gridSize = 50;
+      const viewportWidth = canvas.width / zoomLevel;
+      const viewportHeight = canvas.height / zoomLevel;
       
-      // Calculate grid boundaries based on the visible area
-      const startX = Math.floor((spacecraftX - canvas.width) / gridSize) * gridSize;
-      const endX = Math.ceil((spacecraftX + canvas.width) / gridSize) * gridSize;
-      const startY = Math.floor((spacecraftY - canvas.height) / gridSize) * gridSize;
-      const endY = Math.ceil((spacecraftY + canvas.height) / gridSize) * gridSize;
+      // Calculate grid boundaries based on the visible area, adjusted for zoom
+      const startX = Math.floor((spacecraftX - viewportWidth) / gridSize) * gridSize;
+      const endX = Math.ceil((spacecraftX + viewportWidth) / gridSize) * gridSize;
+      const startY = Math.floor((spacecraftY - viewportHeight) / gridSize) * gridSize;
+      const endY = Math.ceil((spacecraftY + viewportHeight) / gridSize) * gridSize;
       
       // Vertical lines
       for (let x = startX; x <= endX; x += gridSize) {
@@ -567,7 +664,7 @@ const SimulationCanvas = ({
     
     // Cleanup on unmount or when dependencies change
     return () => cancelAnimationFrame(frameIdRef.current);
-  }, [isRunning, simSpeed, radarRange, navigationControls, aiMode]);
+  }, [isRunning, simSpeed, radarRange, navigationControls, aiMode, zoomLevel, panOffset]);
   
   return (
     <canvas 
