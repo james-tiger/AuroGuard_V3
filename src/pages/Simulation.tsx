@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Progress } from '@/components/ui/progress';
-import { Pause, Play, FastForward, SkipForward, RotateCcw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Shield, Power, Target, Satellite, X } from 'lucide-react';
+import { Pause, Play, FastForward, SkipForward, RotateCcw, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Shield, Power, Target, Satellite, X, Radar, Zap, Activity } from 'lucide-react';
 import SimulationCanvas from '@/components/SimulationCanvas';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -50,7 +50,7 @@ const Simulation = () => {
   const [debrisData, setDebrisData] = useState({
     count: INITIAL_TELEMETRY.environment.debrisCount,
     nearby: INITIAL_TELEMETRY.environment.nearbyObjects,
-    risk: INITIAL_TELEMETRY.safety.collisionRisk as 'Low' | 'Medium' | 'High',
+    risk: INITIAL_TELEMETRY.safety.collisionRisk,
     velocity: 2.5,
     weight: 120,
     size: 1.8,
@@ -305,8 +305,13 @@ const Simulation = () => {
   };
 
   return (
-    <div className="flex-1 relative overflow-hidden starfield">
-      {/* Main simulation area */}
+    <div className="flex-1 relative overflow-hidden mission-control-bg">
+      {/* Modern Background Effects */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900/50 via-blue-900/20 to-purple-900/30 pointer-events-none"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(34,197,94,0.1),transparent_40%)] pointer-events-none"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(59,130,246,0.08),transparent_40%)] pointer-events-none"></div>
+
+      {/* Main simulation area with modern overlay */}
       <div className="absolute inset-0 z-0">
         <SimulationCanvas 
           isRunning={isRunning} 
@@ -319,136 +324,190 @@ const Simulation = () => {
         />
       </div>
 
-      {/* Collision warning alert - moved to left side */}
+      {/* Modern Status Bar - Top */}
+      <div className="absolute top-4 left-4 right-80 z-20">
+        <div className="mission-panel p-4 backdrop-blur-xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="mission-label">System Status: OPERATIONAL</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Activity className="w-4 h-4 text-green-400" />
+                <span className="mission-label">Speed: {simSpeed}x</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Radar className="w-4 h-4 text-cyan-400" />
+                <span className="mission-label">Range: {radarRange}km</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="mission-value text-lg">{Math.round(simulationStatistics.distanceTraveled)} km</div>
+              <div className="text-xs mission-subtitle">Distance Traveled</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Collision warning alert - modernized */}
       {showWarning && (
-        <div className="absolute top-24 left-4 right-auto z-20 max-w-xs">
-          <Alert variant="destructive" className="border-red-600 bg-red-900/40 text-white animate-pulse glassmorphism">
-            <div className="flex justify-between items-start">
-              <div>
-                <AlertTitle className="text-red-200 highlight-text">COLLISION RISK DETECTED</AlertTitle>
-                <AlertDescription>
-                  Critical proximity warning! Space debris detected within {Math.round(radarRange * 0.3)}km range.
-                </AlertDescription>
+        <div className="absolute top-24 left-4 right-auto z-20 max-w-sm">
+          <div className="mission-panel border-red-500/50 bg-red-900/20 text-white animate-mission-glow backdrop-blur-xl">
+            <div className="flex justify-between items-start p-4">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center">
+                  <Shield className="w-4 h-4 text-red-400" />
+                </div>
+                <div>
+                  <div className="mission-title text-red-200 text-sm font-semibold mb-1">COLLISION RISK DETECTED</div>
+                  <div className="text-xs mission-subtitle">
+                    Critical proximity warning! Space debris detected within {Math.round(radarRange * 0.3)}km range.
+                  </div>
+                </div>
               </div>
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="text-red-200 hover:text-white hover:bg-red-800/50" 
+                className="text-red-200 hover:text-white hover:bg-red-800/50 mission-button-secondary" 
                 onClick={dismissWarning}
               >
                 <X className="h-4 w-4" />
               </Button>
             </div>
-          </Alert>
+          </div>
         </div>
       )}
 
-      {/* Critical System Status - also moved to left side */}
+      {/* Critical System Status - modernized */}
       {(telemetry.spacecraft.fuel < 20 || telemetry.spacecraft.shields < 30) && (
-        <div className="absolute bottom-4 left-4 right-auto z-20 max-w-xs">
-          <Alert variant="destructive" className="border-amber-600 bg-amber-900/40 text-white glassmorphism">
-            <AlertTitle className="text-amber-200">SYSTEM ALERT</AlertTitle>
-            <AlertDescription>
-              {telemetry.spacecraft.fuel < 20 && (
-                <div className="mb-1">Fuel levels critical: {Math.round(telemetry.spacecraft.fuel)}% remaining</div>
-              )}
-              {telemetry.spacecraft.shields < 30 && (
-                <div>Shield integrity compromised: {Math.round(telemetry.spacecraft.shields)}% remaining</div>
-              )}
-            </AlertDescription>
-          </Alert>
+        <div className="absolute bottom-4 left-4 right-auto z-20 max-w-sm">
+          <div className="mission-panel border-amber-500/50 bg-amber-900/20 text-white backdrop-blur-xl">
+            <div className="p-4">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center">
+                  <Zap className="w-4 h-4 text-amber-400" />
+                </div>
+                <div className="mission-title text-amber-200 text-sm font-semibold">SYSTEM ALERT</div>
+              </div>
+              <div className="space-y-1 text-xs mission-subtitle">
+                {telemetry.spacecraft.fuel < 20 && (
+                  <div>Fuel levels critical: {Math.round(telemetry.spacecraft.fuel)}% remaining</div>
+                )}
+                {telemetry.spacecraft.shields < 30 && (
+                  <div>Shield integrity compromised: {Math.round(telemetry.spacecraft.shields)}% remaining</div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Right sidebar with controls */}
-      <div className="absolute top-0 right-0 bottom-0 w-80 glassmorphism border-l border-space-grid overflow-y-auto z-10">
-        <div className="p-4">
+      {/* Modern Right sidebar with enhanced controls */}
+      <div className="absolute top-0 right-0 bottom-0 w-80 mission-panel border-l border-green-500/20 overflow-y-auto z-10 backdrop-blur-xl">
+        <div className="p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
-              <TabsTrigger value="controls">Controls</TabsTrigger>
-              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 mb-6 mission-panel">
+              <TabsTrigger value="controls" className="mission-button-secondary">Mission Control</TabsTrigger>
+              <TabsTrigger value="dashboard" className="mission-button-secondary">Analytics</TabsTrigger>
             </TabsList>
             
             <TabsContent value="controls" className="space-y-6">
-              {/* Telemetry Section */}
-              <div className="space-y-4 floating-panel">
-                <div className="section-title">
-                  Telemetry
+              {/* Enhanced Telemetry Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+                    <Activity className="w-4 h-4 text-green-400" />
+                  </div>
+                  <h3 className="mission-title text-lg">Live Telemetry</h3>
                 </div>
 
-                {/* Spacecraft Data */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="glassmorphism p-3 glow-border">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Satellite className="h-4 w-4 text-space-accent" />
-                      <span className="text-xs text-gray-400">Spacecraft</span>
+                {/* Spacecraft Data - Enhanced */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="mission-panel p-4 border border-green-500/20">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Satellite className="h-4 w-4 text-green-400" />
+                      <span className="text-xs mission-subtitle">Spacecraft</span>
                     </div>
                     <div className="space-y-3">
-                      <div className="data-cell">
-                        <span className="data-label">Velocity</span>
-                        <span className="data-value">{telemetry.spacecraft.velocity} km/s</span>
+                      <div className="flex justify-between items-center">
+                        <span className="mission-label text-xs">Velocity</span>
+                        <span className="mission-value text-sm">{telemetry.spacecraft.velocity} km/s</span>
                       </div>
                       <div>
-                        <div className="flex justify-between items-center text-sm mb-1">
-                          <span className="data-label">Altitude</span>
-                          <span className="data-value">{telemetry.spacecraft.altitude} km</span>
+                        <div className="flex justify-between items-center text-xs mb-2">
+                          <span className="mission-label">Altitude</span>
+                          <span className="mission-value">{telemetry.spacecraft.altitude} km</span>
                         </div>
-                        <Progress value={telemetry.spacecraft.altitude / 10} className="h-1 mt-1 tech-progress-bar" />
+                        <div className="mission-progress h-2 rounded-full">
+                          <div 
+                            className="h-full bg-gradient-to-r from-green-500 to-emerald-600 rounded-full transition-all duration-300"
+                            style={{ width: `${telemetry.spacecraft.altitude / 10}%` }}
+                          />
+                        </div>
                       </div>
                       <div>
-                        <div className="flex justify-between items-center text-sm mb-1">
-                          <span className="data-label">Fuel</span>
-                          <span className={`data-value ${telemetry.spacecraft.fuel < 20 ? 'text-red-500' : ''}`}>
+                        <div className="flex justify-between items-center text-xs mb-2">
+                          <span className="mission-label">Fuel</span>
+                          <span className={`mission-value ${telemetry.spacecraft.fuel < 20 ? 'text-red-400' : ''}`}>
                             {Math.round(telemetry.spacecraft.fuel)}%
                           </span>
                         </div>
-                        <Progress 
-                          value={telemetry.spacecraft.fuel} 
-                          className={`h-1 mt-1 ${
-                            telemetry.spacecraft.fuel < 20 ? 'bg-red-900' : 'tech-progress-bar'
-                          }`} 
-                        />
+                        <div className="mission-progress h-2 rounded-full">
+                          <div 
+                            className={`h-full rounded-full transition-all duration-300 ${
+                              telemetry.spacecraft.fuel < 20 
+                                ? 'bg-gradient-to-r from-red-500 to-red-600' 
+                                : 'bg-gradient-to-r from-green-500 to-emerald-600'
+                            }`}
+                            style={{ width: `${telemetry.spacecraft.fuel}%` }}
+                          />
+                        </div>
                       </div>
                       <div>
-                        <div className="flex justify-between items-center text-sm mb-1">
-                          <span className="data-label">Shields</span>
-                          <span className={`data-value ${telemetry.spacecraft.shields < 30 ? 'text-red-500' : ''}`}>
+                        <div className="flex justify-between items-center text-xs mb-2">
+                          <span className="mission-label">Shields</span>
+                          <span className={`mission-value ${telemetry.spacecraft.shields < 30 ? 'text-red-400' : ''}`}>
                             {Math.round(telemetry.spacecraft.shields)}%
                           </span>
                         </div>
-                        <Progress 
-                          value={telemetry.spacecraft.shields} 
-                          className={`h-1 mt-1 ${
-                            telemetry.spacecraft.shields < 30 ? 'bg-red-900' : 'tech-progress-bar'
-                          }`} 
-                        />
+                        <div className="mission-progress h-2 rounded-full">
+                          <div 
+                            className={`h-full rounded-full transition-all duration-300 ${
+                              telemetry.spacecraft.shields < 30 
+                                ? 'bg-gradient-to-r from-red-500 to-red-600' 
+                                : 'bg-gradient-to-r from-blue-500 to-blue-600'
+                            }`}
+                            style={{ width: `${telemetry.spacecraft.shields}%` }}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="glassmorphism p-3 glow-border">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Target className="h-4 w-4 text-space-accent" />
-                      <span className="text-xs text-gray-400">Environment</span>
+                  <div className="mission-panel p-4 border border-cyan-500/20">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Target className="h-4 w-4 text-cyan-400" />
+                      <span className="text-xs mission-subtitle">Environment</span>
                     </div>
-                    <div className="space-y-2">
-                      <div className="data-cell">
-                        <span className="data-label">Radar Range</span>
-                        <span className="data-value">{radarRange} km</span>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="mission-label text-xs">Radar Range</span>
+                        <span className="mission-value text-sm">{radarRange} km</span>
                       </div>
-                      <div className="data-cell">
-                        <span className="data-label">Debris Count</span>
-                        <span className="data-value">{telemetry.environment.debrisCount}</span>
+                      <div className="flex justify-between items-center">
+                        <span className="mission-label text-xs">Debris Count</span>
+                        <span className="mission-value text-sm">{telemetry.environment.debrisCount}</span>
                       </div>
-                      <div className="data-cell">
-                        <span className="data-label">Nearby Objects</span>
-                        <span className="data-value">{telemetry.environment.nearbyObjects}</span>
+                      <div className="flex justify-between items-center">
+                        <span className="mission-label text-xs">Nearby Objects</span>
+                        <span className="mission-value text-sm">{telemetry.environment.nearbyObjects}</span>
                       </div>
-                      <div className="data-cell">
-                        <span className="data-label">Solar Activity</span>
-                        <span className={`data-value ${
-                          telemetry.environment.solarActivity === 'High' ? 'text-red-500' : 
-                          telemetry.environment.solarActivity === 'Moderate' ? 'text-yellow-500' : 'text-green-500'
+                      <div className="flex justify-between items-center">
+                        <span className="mission-label text-xs">Solar Activity</span>
+                        <span className={`mission-value text-sm ${
+                          telemetry.environment.solarActivity === 'High' ? 'text-red-400' : 
+                          telemetry.environment.solarActivity === 'Moderate' ? 'text-yellow-400' : 'text-green-400'
                         }`}>
                           {telemetry.environment.solarActivity}
                         </span>
@@ -456,108 +515,113 @@ const Simulation = () => {
                     </div>
                   </div>
 
-                  <div className="glassmorphism p-3 glow-border">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Shield className="h-4 w-4 text-space-accent" />
-                      <span className="text-xs text-gray-400">Safety</span>
+                  <div className="mission-panel p-4 border border-blue-500/20">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Shield className="h-4 w-4 text-blue-400" />
+                      <span className="text-xs mission-subtitle">Safety</span>
                     </div>
                     <div className="space-y-3">
-                      <div className="data-cell">
-                        <span className="data-label">Collision Risk</span>
-                        <span 
-                          className={`data-value ${
-                            telemetry.safety.collisionRisk === 'Low' ? 'text-green-500' : 
-                            telemetry.safety.collisionRisk === 'Medium' ? 'text-yellow-500' : 
-                            'text-red-500'
-                          }`}
-                        >
+                      <div className="flex justify-between items-center">
+                        <span className="mission-label text-xs">Collision Risk</span>
+                        <div className={`status-indicator text-xs ${
+                          telemetry.safety.collisionRisk === 'Low' ? 'status-operational' : 
+                          telemetry.safety.collisionRisk === 'Medium' ? 'status-warning' : 
+                          'status-critical'
+                        }`}>
                           {telemetry.safety.collisionRisk}
-                        </span>
+                        </div>
                       </div>
-                      <div className="data-cell">
-                        <span className="data-label">Radiation Level</span>
-                        <span 
-                          className={`data-value ${
-                            telemetry.safety.radiationLevel === 'Normal' ? 'text-green-500' : 'text-yellow-500'
-                          }`}
-                        >
+                      <div className="flex justify-between items-center">
+                        <span className="mission-label text-xs">Radiation Level</span>
+                        <div className={`status-indicator text-xs ${
+                          telemetry.safety.radiationLevel === 'Normal' ? 'status-operational' : 'status-warning'
+                        }`}>
                           {telemetry.safety.radiationLevel}
-                        </span>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="glassmorphism p-3 glow-border">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Power className="h-4 w-4 text-space-accent" />
-                      <span className="text-xs text-gray-400">System</span>
+                  <div className="mission-panel p-4 border border-purple-500/20">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Power className="h-4 w-4 text-purple-400" />
+                      <span className="text-xs mission-subtitle">System</span>
                     </div>
                     <div className="space-y-3">
-                      <div className="data-cell">
-                        <span className="data-label">AI Status</span>
-                        <span className="data-value">{telemetry.system.aiStatus}</span>
+                      <div className="flex justify-between items-center">
+                        <span className="mission-label text-xs">AI Status</span>
+                        <span className="mission-value text-sm">{telemetry.system.aiStatus}</span>
                       </div>
                       <div>
-                        <div className="flex justify-between items-center text-sm mb-1">
-                          <span className="data-label">System Integrity</span>
-                          <span className={`data-value ${telemetry.system.systemIntegrity < 90 ? 'text-yellow-500' : ''}`}>
+                        <div className="flex justify-between items-center text-xs mb-2">
+                          <span className="mission-label">System Integrity</span>
+                          <span className={`mission-value ${telemetry.system.systemIntegrity < 90 ? 'text-yellow-400' : ''}`}>
                             {telemetry.system.systemIntegrity}%
                           </span>
                         </div>
-                        <Progress 
-                          value={telemetry.system.systemIntegrity} 
-                          className="h-1 mt-1 tech-progress-bar" 
-                        />
+                        <div className="mission-progress h-2 rounded-full">
+                          <div 
+                            className="h-full bg-gradient-to-r from-purple-500 to-purple-600 rounded-full transition-all duration-300"
+                            style={{ width: `${telemetry.system.systemIntegrity}%` }}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Command Core Section */}
+              {/* Enhanced Command Core Section */}
               <div className="space-y-4">
-                <div className="section-title">
-                  Command Core
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                    <Power className="w-4 h-4 text-blue-400" />
+                  </div>
+                  <h3 className="mission-title text-lg">Command Core</h3>
                 </div>
                 
-                <div className="glassmorphism p-3 dash-border">
+                <div className="mission-panel p-4 border border-blue-500/20">
                   <div className="mb-4">
-                    <span className="text-xs text-gray-400 block mb-2">Simulation Speed</span>
+                    <span className="mission-label block mb-3">Simulation Speed</span>
                     <div className="flex items-center justify-between gap-2">
                       <button 
-                        className="neo-button"
+                        className={`mission-button flex items-center gap-2 px-3 py-2 ${simSpeed === 1 ? 'border-green-400' : 'mission-button-secondary'}`}
                         onClick={() => handleSpeedChange(1)}
                       >
-                        <RotateCcw className={`h-4 w-4 ${simSpeed === 1 ? 'text-space-accent' : 'text-gray-400'}`} />
+                        <RotateCcw className="h-4 w-4" />
+                        <span className="text-xs">1x</span>
                       </button>
                       <button 
-                        className="neo-button"
+                        className="mission-button flex items-center gap-2 px-3 py-2"
                         onClick={toggleSimulation}
                       >
                         {isRunning ? 
-                          <Pause className="h-4 w-4 text-gray-400" /> : 
-                          <Play className="h-4 w-4 text-space-accent" />
+                          <Pause className="h-4 w-4" /> : 
+                          <Play className="h-4 w-4" />
                         }
+                        <span className="text-xs">{isRunning ? 'Pause' : 'Play'}</span>
                       </button>
                       <button 
-                        className="neo-button"
+                        className={`mission-button flex items-center gap-2 px-3 py-2 ${simSpeed === 2 ? 'border-green-400' : 'mission-button-secondary'}`}
                         onClick={() => handleSpeedChange(2)}
                       >
-                        <FastForward className={`h-4 w-4 ${simSpeed === 2 ? 'text-space-accent' : 'text-gray-400'}`} />
+                        <FastForward className="h-4 w-4" />
+                        <span className="text-xs">2x</span>
                       </button>
                       <button 
-                        className="neo-button"
+                        className={`mission-button flex items-center gap-2 px-3 py-2 ${simSpeed === 4 ? 'border-green-400' : 'mission-button-secondary'}`}
                         onClick={() => handleSpeedChange(4)}
                       >
-                        <SkipForward className={`h-4 w-4 ${simSpeed === 4 ? 'text-space-accent' : 'text-gray-400'}`} />
+                        <SkipForward className="h-4 w-4" />
+                        <span className="text-xs">4x</span>
                       </button>
                     </div>
                   </div>
                   
                   <div className="mb-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs text-gray-400">Radar Range</span>
-                      <span className="text-xs font-mono">{radarRange} km</span>
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="mission-label">Radar Range</span>
+                      <span className="mission-value">{radarRange} km</span>
                     </div>
                     <Slider 
                       value={[radarRange]} 
@@ -565,40 +629,49 @@ const Simulation = () => {
                       max={30} 
                       step={1} 
                       onValueChange={handleRadarRangeChange}
-                      className="my-5"
+                      className="my-4"
                     />
+                    <div className="flex justify-between text-xs mission-subtitle">
+                      <span>5km</span>
+                      <span>OPTIMAL: 15km</span>
+                      <span>30km</span>
+                    </div>
                   </div>
 
-                  <div className="mb-2">
+                  <div className="mb-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs text-gray-400">Simulation Status</span>
-                      <div className="flex items-center gap-1">
-                        <span className="indicator-dot bg-green-500"></span>
-                        <span className="text-xs font-mono">{isRunning ? `Running (${simSpeed}x)` : 'Paused'}</span>
+                      <span className="mission-label">Simulation Status</span>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${isRunning ? 'bg-green-400 animate-pulse' : 'bg-gray-500'}`}></div>
+                        <span className="mission-value text-sm">{isRunning ? `Running (${simSpeed}x)` : 'Paused'}</span>
                       </div>
                     </div>
                   </div>
                   
                   <Button 
-                    className="w-full mt-4 bg-space-panel border-space-accent hover:bg-space-accent/20"
+                    className="w-full mission-button-danger"
                     onClick={resetSimulation}
                   >
+                    <RotateCcw className="w-4 h-4 mr-2" />
                     Reset Simulation
                   </Button>
                 </div>
               </div>
               
-              {/* Navigation Hub - Updated control labels */}
+              {/* Enhanced Navigation Hub */}
               <div className="space-y-4">
-                <div className="section-title">
-                  Navigation Hub
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 bg-cyan-500/20 rounded-lg flex items-center justify-center">
+                    <Target className="w-4 h-4 text-cyan-400" />
+                  </div>
+                  <h3 className="mission-title text-lg">Navigation Hub</h3>
                 </div>
                 
-                <div className="glassmorphism p-3 glow-border">
-                  <div className="grid grid-cols-3 gap-2 mb-4">
+                <div className="mission-panel p-4 border border-cyan-500/20">
+                  <div className="grid grid-cols-3 gap-3 mb-4">
                     <div></div>
                     <button 
-                      className={`neo-button flex justify-center items-center ${navigationControls.up ? 'bg-space-accent/20 border-space-accent' : ''}`}
+                      className={`nav-control ${navigationControls.up ? 'bg-green-500/30 border-green-400' : ''}`}
                       onMouseDown={() => handleNavigationPress('up')}
                       onMouseUp={() => handleNavigationRelease('up')}
                       onMouseLeave={() => handleNavigationRelease('up')}
@@ -606,13 +679,14 @@ const Simulation = () => {
                       onTouchEnd={() => handleNavigationRelease('up')}
                       disabled={telemetry.spacecraft.fuel <= 0}
                     >
-                      <ArrowDown className="h-4 w-4" />
-                      <span className="text-xs ml-1">Blow Down</span>
+                      <ArrowDown className="h-5 w-5" />
                     </button>
-                    <div></div>
+                    <div className="flex items-center justify-center">
+                      <span className="text-xs mission-subtitle">Blow Down</span>
+                    </div>
                     
                     <button 
-                      className={`neo-button flex justify-center items-center ${navigationControls.left ? 'bg-space-accent/20 border-space-accent' : ''}`}
+                      className={`nav-control ${navigationControls.left ? 'bg-green-500/30 border-green-400' : ''}`}
                       onMouseDown={() => handleNavigationPress('left')}
                       onMouseUp={() => handleNavigationRelease('left')}
                       onMouseLeave={() => handleNavigationRelease('left')}
@@ -620,21 +694,15 @@ const Simulation = () => {
                       onTouchEnd={() => handleNavigationRelease('left')}
                       disabled={telemetry.spacecraft.fuel <= 0}
                     >
-                      <ArrowLeft className="h-4 w-4" />
+                      <ArrowLeft className="h-5 w-5" />
                     </button>
+                    <div className="flex items-center justify-center">
+                      <div className="w-12 h-12 mission-panel rounded-lg flex items-center justify-center border border-green-500/30">
+                        <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
+                      </div>
+                    </div>
                     <button 
-                      className={`neo-button flex justify-center items-center ${navigationControls.down ? 'bg-space-accent/20 border-space-accent' : ''}`}
-                      onMouseDown={() => handleNavigationPress('down')}
-                      onMouseUp={() => handleNavigationRelease('down')}
-                      onMouseLeave={() => handleNavigationRelease('down')}
-                      onTouchStart={() => handleNavigationPress('down')}
-                      onTouchEnd={() => handleNavigationRelease('down')}
-                      disabled={telemetry.spacecraft.fuel <= 0}
-                    >
-                      <ArrowUp className="h-4 w-4" />
-                    </button>
-                    <button 
-                      className={`neo-button flex justify-center items-center ${navigationControls.right ? 'bg-space-accent/20 border-space-accent' : ''}`}
+                      className={`nav-control ${navigationControls.right ? 'bg-green-500/30 border-green-400' : ''}`}
                       onMouseDown={() => handleNavigationPress('right')}
                       onMouseUp={() => handleNavigationRelease('right')}
                       onMouseLeave={() => handleNavigationRelease('right')}
@@ -642,74 +710,103 @@ const Simulation = () => {
                       onTouchEnd={() => handleNavigationRelease('right')}
                       disabled={telemetry.spacecraft.fuel <= 0}
                     >
-                      <ArrowRight className="h-4 w-4" />
+                      <ArrowRight className="h-5 w-5" />
                     </button>
+                    
+                    <div></div>
+                    <button 
+                      className={`nav-control ${navigationControls.down ? 'bg-green-500/30 border-green-400' : ''}`}
+                      onMouseDown={() => handleNavigationPress('down')}
+                      onMouseUp={() => handleNavigationRelease('down')}
+                      onMouseLeave={() => handleNavigationRelease('down')}
+                      onTouchStart={() => handleNavigationPress('down')}
+                      onTouchEnd={() => handleNavigationRelease('down')}
+                      disabled={telemetry.spacecraft.fuel <= 0}
+                    >
+                      <ArrowUp className="h-5 w-5" />
+                    </button>
+                    <div className="flex items-center justify-center">
+                      <span className="text-xs mission-subtitle">Forward</span>
+                    </div>
                   </div>
                   
-                  <div className="text-xs text-center data-label">
+                  <div className="text-xs text-center mission-subtitle p-3 mission-panel rounded-lg">
                     {telemetry.spacecraft.fuel <= 0 ? (
-                      <span className="text-red-500">Fuel depleted - Thrusters offline</span>
+                      <span className="text-red-400">⚠️ Fuel depleted - Thrusters offline</span>
                     ) : Object.values(navigationControls).some(control => control) ? (
-                      'Thrusters active'
+                      <span className="text-green-400">🚀 Thrusters active</span>
                     ) : (
-                      'Use controls to navigate spacecraft'
+                      'Use navigation controls to maneuver spacecraft'
                     )}
                   </div>
                 </div>
               </div>
               
-              {/* AI Nexus */}
+              {/* Enhanced AI Nexus */}
               <div className="space-y-4">
-                <div className="section-title">
-                  AI Nexus
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                    <Shield className="w-4 h-4 text-purple-400" />
+                  </div>
+                  <h3 className="mission-title text-lg">AI Nexus</h3>
                 </div>
                 
-                <div className="glassmorphism p-3 glow-border">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs text-gray-400">AI Control</span>
-                    <div className="flex items-center">
-                      <span className="text-xs">Manual</span>
+                <div className="mission-panel p-4 border border-purple-500/20">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="mission-label">AI Control System</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs mission-subtitle">Manual</span>
                       <div 
-                        className="w-8 h-4 mx-2 rounded-full bg-gray-700 flex items-center p-0.5 cursor-pointer"
+                        className={`w-12 h-6 rounded-full flex items-center p-1 cursor-pointer transition-all duration-300 ${
+                          aiMode !== 'off' ? 'bg-green-500/30 border border-green-400' : 'bg-gray-700/50 border border-gray-600'
+                        }`}
                         onClick={() => changeAiMode(aiMode === 'off' ? 'avoid' : 'off')}
                       >
-                        <div className={`w-3 h-3 rounded-full transition-all ${aiMode !== 'off' ? 'bg-space-accent translate-x-4' : 'bg-gray-400'}`}></div>
+                        <div className={`w-4 h-4 rounded-full transition-all duration-300 ${
+                          aiMode !== 'off' ? 'bg-green-400 translate-x-6' : 'bg-gray-400'
+                        }`}></div>
                       </div>
+                      <span className="text-xs mission-subtitle">Auto</span>
                     </div>
                   </div>
                   
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-3 mb-4">
                     <button 
-                      className={`neo-button flex flex-col items-center justify-center py-2 ${aiMode === 'off' ? 'border-space-accent' : ''}`}
+                      className={`mission-button-secondary flex flex-col items-center justify-center py-3 gap-2 ${aiMode === 'off' ? 'border-green-400 bg-green-500/10' : ''}`}
                       onClick={() => changeAiMode('off')}
                     >
-                      <Power className="h-4 w-4 mb-1" />
-                      <span className="text-xs">Off</span>
+                      <Power className="h-5 w-5" />
+                      <span className="text-xs">Manual</span>
                     </button>
                     <button 
-                      className={`neo-button flex flex-col items-center justify-center py-2 ${aiMode === 'avoid' ? 'border-space-accent' : ''}`}
+                      className={`mission-button-secondary flex flex-col items-center justify-center py-3 gap-2 ${aiMode === 'avoid' ? 'border-green-400 bg-green-500/10' : ''}`}
                       onClick={() => changeAiMode('avoid')}
                       disabled={telemetry.spacecraft.fuel <= 0}
                     >
-                      <Shield className="h-4 w-4 mb-1" />
+                      <Shield className="h-5 w-5" />
                       <span className="text-xs">Avoid</span>
                     </button>
                     <button 
-                      className={`neo-button flex flex-col items-center justify-center py-2 ${aiMode === 'follow' ? 'border-space-accent' : ''}`}
+                      className={`mission-button-secondary flex flex-col items-center justify-center py-3 gap-2 ${aiMode === 'follow' ? 'border-green-400 bg-green-500/10' : ''}`}
                       onClick={() => changeAiMode('follow')}
                       disabled={telemetry.spacecraft.fuel <= 0}
                     >
-                      <Target className="h-4 w-4 mb-1" />
-                      <span className="text-xs">Follow</span>
+                      <Target className="h-5 w-5" />
+                      <span className="text-xs">Track</span>
                     </button>
                   </div>
                   
-                  <div className="mt-3">
-                    <div className="flex items-center mt-2">
-                      <span className={`indicator-dot ${aiMode !== 'off' ? 'bg-space-accent' : 'bg-red-500'} mr-2`}></span>
-                      <span className="text-xs data-label">
-                        {aiMode !== 'off' ? `AI ${aiMode} mode active` : 'AI navigation disabled'}
+                  <div className="mission-panel p-3 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${aiMode !== 'off' ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`}></div>
+                      <span className="text-xs mission-label">
+                        {aiMode !== 'off' ? `AI ${aiMode} mode active` : 'Manual navigation mode'}
                       </span>
+                    </div>
+                    <div className="text-xs mission-subtitle mt-2">
+                      {aiMode === 'avoid' && 'System automatically avoiding detected debris'}
+                      {aiMode === 'follow' && 'System tracking nearest debris object'}
+                      {aiMode === 'off' && 'Manual control - use navigation hub'}
                     </div>
                   </div>
                 </div>
