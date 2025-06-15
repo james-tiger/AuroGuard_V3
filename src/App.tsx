@@ -17,7 +17,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <div className="flex flex-col min-h-screen modern-starfield">
+        <div className="flex flex-col min-h-screen mission-control-bg">
           <ModernHeader />
           <Routes>
             <Route path="/" element={<Index />} />

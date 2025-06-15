@@ -5,17 +5,17 @@
 
 @layer base {
   :root {
-    --background: 222 47% 11%;
+    --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
 
-    --card: 222 47% 11%;
+    --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222 47% 11%;
+    --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 142.1 76.2% 36.3%;
+    --primary-foreground: 355.7 100% 97.3%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -23,17 +23,17 @@
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 175 85% 45%;
+    --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 62.8% 50.6%;
+    --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --ring: 142.1 76.2% 36.3%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
   }
 
   * {
@@ -41,20 +41,20 @@
   }
 
   body {
-    @apply bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-foreground;
+    @apply bg-background text-foreground;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
 }
 
-/* Modern Space Theme */
-.modern-starfield {
-  background: linear-gradient(135deg, #0a0f1e 0%, #1a1f3a 50%, #0a0f1e 100%);
+/* Professional Space Mission Control Theme */
+.mission-control-bg {
+  background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 25%, #0d1117 50%, #161b22 75%, #0f1419 100%);
   background-size: 400% 400%;
-  animation: gradient-shift 20s ease infinite;
+  animation: subtle-gradient 30s ease infinite;
   position: relative;
 }
 
-.modern-starfield::before {
+.mission-control-bg::before {
   content: '';
   position: absolute;
   top: 0;
@@ -62,67 +62,65 @@
   right: 0;
   bottom: 0;
   background-image: 
-    radial-gradient(circle at 20% 80%, rgba(120, 219, 226, 0.4) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(255, 121, 198, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(139, 92, 246, 0.2) 0%, transparent 50%);
+    radial-gradient(circle at 20% 20%, rgba(34, 197, 94, 0.1) 0%, transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 60% 30%, rgba(168, 85, 247, 0.06) 0%, transparent 40%);
   pointer-events: none;
 }
 
-@keyframes gradient-shift {
+@keyframes subtle-gradient {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
 }
 
-/* Modern Glassmorphism Components */
-.glass-panel {
-  background: rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(148, 163, 184, 0.1);
-  border-radius: 1rem;
+/* Professional Glass Panels */
+.mission-panel {
+  background: rgba(22, 27, 34, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(48, 54, 61, 0.8);
+  border-radius: 12px;
   box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
   position: relative;
   overflow: hidden;
 }
 
-.glass-panel::before {
+.mission-panel::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.3), transparent);
 }
 
-/* Modern Cards */
-.modern-card {
-  background: linear-gradient(145deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6));
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(148, 163, 184, 0.15);
-  border-radius: 0.875rem;
+/* Professional Status Cards */
+.status-card {
+  background: linear-gradient(145deg, rgba(22, 27, 34, 0.9), rgba(30, 41, 59, 0.7));
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(48, 54, 61, 0.6);
+  border-radius: 10px;
   box-shadow: 
-    0 10px 40px rgba(0, 0, 0, 0.2),
-    0 1px 3px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 4px 20px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.modern-card:hover {
+.status-card:hover {
   transform: translateY(-2px);
+  border-color: rgba(34, 197, 94, 0.4);
   box-shadow: 
-    0 20px 60px rgba(0, 0, 0, 0.3),
-    0 4px 12px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  border-color: rgba(148, 163, 184, 0.25);
+    0 8px 30px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(34, 197, 94, 0.1);
 }
 
-/* Modern Buttons */
-.modern-button {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(147, 51, 234, 0.8));
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: 0.75rem;
+/* Professional Buttons */
+.mission-button {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.9), rgba(22, 163, 74, 0.9));
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 8px;
   padding: 0.75rem 1.5rem;
   color: white;
   font-weight: 600;
@@ -131,226 +129,259 @@
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 
-    0 4px 16px rgba(59, 130, 246, 0.3),
-    0 1px 3px rgba(0, 0, 0, 0.1);
+    0 4px 14px rgba(34, 197, 94, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-.modern-button::before {
+.mission-button::before {
   content: '';
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
   transition: left 0.5s;
 }
 
-.modern-button:hover {
+.mission-button:hover {
   transform: translateY(-1px);
   box-shadow: 
-    0 8px 25px rgba(59, 130, 246, 0.4),
-    0 4px 12px rgba(0, 0, 0, 0.15);
-  border-color: rgba(59, 130, 246, 0.5);
+    0 6px 20px rgba(34, 197, 94, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  border-color: rgba(34, 197, 94, 0.5);
 }
 
-.modern-button:hover::before {
+.mission-button:hover::before {
   left: 100%;
 }
 
-.modern-button:active {
+.mission-button:active {
   transform: translateY(0);
 }
 
 /* Secondary Button */
-.modern-button-secondary {
-  background: rgba(71, 85, 105, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.3);
+.mission-button-secondary {
+  background: rgba(71, 85, 105, 0.6);
+  border: 1px solid rgba(100, 116, 139, 0.4);
   backdrop-filter: blur(8px);
 }
 
-.modern-button-secondary:hover {
-  background: rgba(71, 85, 105, 0.7);
-  border-color: rgba(148, 163, 184, 0.5);
+.mission-button-secondary:hover {
+  background: rgba(71, 85, 105, 0.8);
+  border-color: rgba(100, 116, 139, 0.6);
 }
 
-/* Modern Input Fields */
-.modern-input {
-  background: rgba(15, 23, 42, 0.6);
+/* Danger Button */
+.mission-button-danger {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.9), rgba(220, 38, 38, 0.9));
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  box-shadow: 
+    0 4px 14px rgba(239, 68, 68, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.mission-button-danger:hover {
+  box-shadow: 
+    0 6px 20px rgba(239, 68, 68, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+/* Professional Input Fields */
+.mission-input {
+  background: rgba(22, 27, 34, 0.8);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 0.75rem;
+  border: 1px solid rgba(48, 54, 61, 0.6);
+  border-radius: 8px;
   padding: 0.75rem 1rem;
   color: white;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.modern-input:focus {
+.mission-input:focus {
   outline: none;
-  border-color: rgba(59, 130, 246, 0.5);
+  border-color: rgba(34, 197, 94, 0.5);
   box-shadow: 
-    0 0 0 3px rgba(59, 130, 246, 0.1),
-    inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    0 0 0 3px rgba(34, 197, 94, 0.1),
+    inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* Status Indicators */
+/* Professional Status Indicators */
 .status-indicator {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  border-radius: 2rem;
-  font-size: 0.875rem;
-  font-weight: 500;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   backdrop-filter: blur(8px);
 }
 
-.status-low {
-  background: rgba(34, 197, 94, 0.2);
+.status-operational {
+  background: rgba(34, 197, 94, 0.15);
   border: 1px solid rgba(34, 197, 94, 0.3);
-  color: rgb(74, 222, 128);
+  color: rgb(34, 197, 94);
 }
 
-.status-medium {
-  background: rgba(245, 158, 11, 0.2);
+.status-warning {
+  background: rgba(245, 158, 11, 0.15);
   border: 1px solid rgba(245, 158, 11, 0.3);
-  color: rgb(251, 191, 36);
+  color: rgb(245, 158, 11);
 }
 
-.status-high {
-  background: rgba(239, 68, 68, 0.2);
+.status-critical {
+  background: rgba(239, 68, 68, 0.15);
   border: 1px solid rgba(239, 68, 68, 0.3);
-  color: rgb(248, 113, 113);
+  color: rgb(239, 68, 68);
 }
 
-/* Progress Bars */
-.modern-progress {
-  height: 8px;
-  background: rgba(15, 23, 42, 0.8);
-  border-radius: 1rem;
+/* Professional Progress Bars */
+.mission-progress {
+  height: 6px;
+  background: rgba(22, 27, 34, 0.8);
+  border-radius: 6px;
   overflow: hidden;
   position: relative;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-.modern-progress-fill {
+.mission-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #06b6d4, #3b82f6, #8b5cf6);
-  border-radius: 1rem;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(90deg, #22c55e, #16a34a, #15803d);
+  border-radius: 6px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
 }
 
-.modern-progress-fill::after {
+.mission-progress-fill::after {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  animation: progress-shine 2s ease-in-out infinite;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: progress-shimmer 2s ease-in-out infinite;
 }
 
-@keyframes progress-shine {
+@keyframes progress-shimmer {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
 }
 
-/* Typography */
-.title-gradient {
-  background: linear-gradient(135deg, #60a5fa, #a78bfa, #06b6d4);
+/* Professional Typography */
+.mission-title {
+  background: linear-gradient(135deg, #22c55e, #10b981, #059669);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  font-weight: 700;
 }
 
-.text-glow {
-  text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+.mission-subtitle {
+  color: rgba(156, 163, 175, 0.9);
+  font-weight: 500;
+}
+
+.mission-label {
+  color: rgba(209, 213, 219, 0.9);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.mission-value {
+  color: #22c55e;
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+  font-weight: 600;
 }
 
 /* Navigation Arrows */
-.nav-arrow {
+.nav-control {
   width: 3rem;
   height: 3rem;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2));
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: 0.75rem;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(22, 163, 74, 0.2));
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(8px);
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
 }
 
-.nav-arrow:hover {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.4), rgba(147, 51, 234, 0.4));
-  border-color: rgba(59, 130, 246, 0.5);
+.nav-control::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(22, 163, 74, 0.1));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.nav-control:hover {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.4), rgba(22, 163, 74, 0.4));
+  border-color: rgba(34, 197, 94, 0.5);
   transform: scale(1.05);
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.3);
 }
 
-.nav-arrow:active {
+.nav-control:hover::before {
+  opacity: 1;
+}
+
+.nav-control:active {
   transform: scale(0.95);
 }
 
 /* Animations */
-@keyframes float-up {
+@keyframes mission-fade-in {
   0% { transform: translateY(20px); opacity: 0; }
   100% { transform: translateY(0); opacity: 1; }
 }
 
-@keyframes slide-in-right {
+@keyframes mission-slide-in {
   0% { transform: translateX(20px); opacity: 0; }
   100% { transform: translateX(0); opacity: 1; }
 }
 
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
-  50% { box-shadow: 0 0 30px rgba(59, 130, 246, 0.6); }
+@keyframes mission-glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.3); }
+  50% { box-shadow: 0 0 30px rgba(34, 197, 94, 0.6); }
 }
 
-.animate-float-up {
-  animation: float-up 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+.animate-mission-fade-in {
+  animation: mission-fade-in 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.animate-slide-in-right {
-  animation: slide-in-right 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+.animate-mission-slide-in {
+  animation: mission-slide-in 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.animate-pulse-glow {
-  animation: pulse-glow 3s ease-in-out infinite;
-}
-
-/* Utility Classes */
-.backdrop-blur-heavy {
-  backdrop-filter: blur(24px);
-}
-
-.shadow-glow {
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
-}
-
-.border-glow {
-  border: 1px solid rgba(59, 130, 246, 0.4);
-  box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+.animate-mission-glow {
+  animation: mission-glow-pulse 3s ease-in-out infinite;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .glass-panel {
-    border-radius: 0.75rem;
+  .mission-panel {
+    border-radius: 10px;
     margin: 0.5rem;
   }
   
-  .modern-card {
-    border-radius: 0.75rem;
+  .status-card {
+    border-radius: 8px;
   }
   
-  .modern-button {
+  .mission-button {
     padding: 0.625rem 1.25rem;
     font-size: 0.8125rem;
   }

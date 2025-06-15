@@ -63,17 +63,18 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Enhanced space simulation theme colors
-				space: {
-					DEFAULT: '#0a0f1e',
-					lighter: '#141d33',
-					accent: '#05e9d1',
-					highlight: '#33c3f0',
-					danger: '#ea384c',
-					success: '#4ade80',
-					warning: '#fbbf24',
-					grid: '#1e3a5f',
-					panel: '#111827',
+				// Professional mission control colors
+				mission: {
+					bg: '#0f1419',
+					panel: '#161b22',
+					border: '#30363d',
+					text: '#f0f6fc',
+					primary: '#22c55e',
+					secondary: '#10b981',
+					accent: '#059669',
+					warning: '#f59e0b',
+					danger: '#ef4444',
+					success: '#22c55e',
 				},
 			},
 			borderRadius: {
@@ -105,19 +106,19 @@ export default {
 						height: '0'
 					}
 				},
-				'pulse-light': {
+				'mission-pulse': {
 					'0%, 100%': { opacity: '0.6' },
-					'50%': { opacity: '0.9' },
+					'50%': { opacity: '1' },
 				},
-				'rotate-slow': {
+				'mission-rotate': {
 					'0%': { transform: 'rotate(0deg)' },
 					'100%': { transform: 'rotate(360deg)' },
 				},
-				'float': {
+				'mission-float': {
 					'0%, 100%': { transform: 'translateY(0)' },
-					'50%': { transform: 'translateY(-5px)' },
+					'50%': { transform: 'translateY(-10px)' },
 				},
-				'gradient-x': {
+				'mission-gradient': {
 					'0%, 100%': {
 						'background-size': '200% 200%',
 						'background-position': 'left center'
@@ -127,19 +128,34 @@ export default {
 						'background-position': 'right center'
 					}
 				},
-				'shimmer': {
+				'mission-shimmer': {
 					'0%': { transform: 'translateX(-100%)' },
 					'100%': { transform: 'translateX(100%)' }
+				},
+				'mission-fade-in': {
+					'0%': { opacity: '0', transform: 'translateY(20px)' },
+					'100%': { opacity: '1', transform: 'translateY(0)' }
+				},
+				'mission-slide-in': {
+					'0%': { opacity: '0', transform: 'translateX(20px)' },
+					'100%': { opacity: '1', transform: 'translateX(0)' }
+				},
+				'mission-glow': {
+					'0%, 100%': { boxShadow: '0 0 20px rgba(34, 197, 94, 0.3)' },
+					'50%': { boxShadow: '0 0 30px rgba(34, 197, 94, 0.6)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'pulse-light': 'pulse-light 3s ease-in-out infinite',
-				'rotate-slow': 'rotate-slow 120s linear infinite',
-				'float': 'float 5s ease-in-out infinite',
-				'gradient-x': 'gradient-x 15s ease infinite',
-				'shimmer': 'shimmer 2s linear infinite',
+				'mission-pulse': 'mission-pulse 3s ease-in-out infinite',
+				'mission-rotate': 'mission-rotate 120s linear infinite',
+				'mission-float': 'mission-float 6s ease-in-out infinite',
+				'mission-gradient': 'mission-gradient 15s ease infinite',
+				'mission-shimmer': 'mission-shimmer 2s linear infinite',
+				'mission-fade-in': 'mission-fade-in 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+				'mission-slide-in': 'mission-slide-in 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+				'mission-glow': 'mission-glow 3s ease-in-out infinite',
 			}
 		}
 	},
